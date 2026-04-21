@@ -1,0 +1,69 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* Fondo general */
+body {
+    height: 100vh;
+    background: linear-gradient(135deg, #0f9b8e, #0c7c6f);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Contenedor */
+.login-container {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    padding: 2.5rem;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 400px;
+    color: white;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+/* Título */
+.login-container h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+/* Inputs */
+.login-container input {
+    width: 100%;
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+    border: none;
+    border-radius: 8px;
+    outline: none;
+}
+
+/* Botón */
+.login-container button {
+    width: 100%;
+    padding: 0.8rem;
+    border: none;
+    border-radius: 8px;
+    background: white;
+    color: #0f9b8e;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.login-container button:hover {
+    background: #e6e6e6;
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+    .login-container {
+        padding: 2rem 1.5rem;
+        margin: 0 1rem;
+    }
+}
