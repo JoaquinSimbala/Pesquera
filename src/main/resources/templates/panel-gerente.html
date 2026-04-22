@@ -1,10 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Gerente</title>
+    <title>Panel Gerencial - Análisis de Carga</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
 </head>
 <body>
-<h1>Panel gerente</h1>
+<div th:replace="~{fragments/navbar :: menu}"></div>
+
+<div class="container">
+    <h2 style="color: #0f9b8e; margin-bottom: 1.5rem; text-align: center;">Simulador de Personal: Planta de Pulpo</h2>
+
+    <form th:action="@{/gerente/calcular}" th:object="${calculo}" method="post" class="grid">
+
+        <div class="form-group">
+            <label>Kilos Recibidos:</label>
+            <input type="number" th:field="*{kilos}" required placeholder="Ej: 5000">
+        </div>
+
+        <div class="form-group">
+            <label>Tiempo Objetivo (Horas):</label>
+            <input type="number" th:field="*{tiempoObjetivo}" required placeholder="Ej: 8">
+        </div>
+
+        <button type="submit" class="btn-calc">Calcular Requerimiento</button>
+    </form>
+
+    <div th:if="${necesarios != null}" class="result-box" style="background: none; border: none; padding: 0;">
+        <h3 style="color: #0c7c6f; margin-bottom: 1rem;">Comparativa de Capacidad Operativa</h3>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Rol de Personal</th>
+                <th>Necesarios</th>
+                <th>Disponibles (DB)</th>
+                <th>Estado</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="entry : ${necesarios}"
+                th:classappend="${entry.value > disponibles.get(entry.key)} ? 'alert-row' : ''">
+                <td th:text="${entry.key}" style="font-weight: bold;"></td>
+                <td th:text="${entry.value}"></td>
+                <td th:text="${disponibles.get(entry.key)}"></td>
+                <td>
+                            <span th:if="${entry.value > disponibles.get(entry.key)}" class="status-warn">
+                                ⚠️ Insuficiente
+                            </span>
+                    <span th:unless="${entry.value > disponibles.get(entry.key)}" class="status-ok">
+                                ✅ Cubierto
+                            </span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div style="margin-top: 1.5rem; padding: 1rem; background: #e0f2f1; border-radius: 8px;">
+            <p style="font-size: 0.9rem; color: #555; text-align: center;">
+                <strong>Nota:</strong> El cálculo considera automáticamente <strong>1 hora de improductividad</strong>
+                promedio.
+            </p>
+        </div>
+    </div>
+</div>
 </body>
 </html>
