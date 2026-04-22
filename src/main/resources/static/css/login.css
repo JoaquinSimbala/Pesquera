@@ -1,0 +1,130 @@
+:root {
+    --color-primary: #0f9b8e;
+    --color-primary-dark: #0c7c6f;
+    --color-surface: rgba(255, 255, 255, 0.12);
+    --color-text: #ffffff;
+    --color-danger: #ffd4d4;
+    --color-success: #d7ffe7;
+    --radius-md: 12px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    background: linear-gradient(140deg, #0f9b8e 0%, #0c7c6f 45%, #0a5c57 100%);
+    color: var(--color-text);
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+}
+
+.page-header,
+.page-footer {
+    text-align: center;
+    padding: 1rem;
+}
+
+.page-header h1 {
+    font-size: 1.4rem;
+    margin-bottom: 0.2rem;
+}
+
+main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+
+.login-container {
+    background: var(--color-surface);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    padding: 2rem;
+    border-radius: 18px;
+    width: 100%;
+    max-width: 430px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.24);
+}
+
+.login-container h2 {
+    text-align: center;
+}
+
+.login-subtitle {
+    text-align: center;
+    margin: 0.4rem 0 1.2rem;
+    font-size: 0.95rem;
+    opacity: 0.95;
+}
+
+.alert {
+    padding: 0.7rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 0.9rem;
+    font-size: 0.9rem;
+}
+
+.alert-error {
+    background: rgba(128, 0, 0, 0.28);
+    border: 1px solid var(--color-danger);
+}
+
+.alert-success {
+    background: rgba(0, 71, 38, 0.24);
+    border: 1px solid var(--color-success);
+}
+
+form label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+}
+
+form input {
+    width: 100%;
+    padding: 0.8rem;
+    margin-bottom: 0.9rem;
+    border: none;
+    border-radius: var(--radius-md);
+    outline: none;
+}
+
+form button {
+    width: 100%;
+    padding: 0.8rem;
+    border: none;
+    border-radius: var(--radius-md);
+    background: white;
+    color: var(--color-primary);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+form button:hover {
+    background: #e6e6e6;
+}
+
+.field-error {
+    min-height: 1.2rem;
+    margin-bottom: 0.6rem;
+    font-size: 0.9rem;
+    color: #ffd4d4;
+}
+
+@media (max-width: 500px) {
+    .login-container {
+        padding: 1.5rem;
+        margin: 0 0.5rem;
+    }
+
+    .page-header h1 {
+        font-size: 1.2rem;
+    }
+}

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Gerencial - Análisis de Carga</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+<header>
+    <div th:replace="~{fragments/navbar :: menu}"></div>
+</header>
+
+<main class="container">
+    <h2 class="panel-title">Simulador de Personal: Planta de Pulpo</h2>
+
+    <section class="panel-section" aria-labelledby="form-title">
+        <h3 id="form-title" class="section-title">Ingreso de datos operativos</h3>
+
+        <form id="calculoForm" th:action="@{/gerente/calcular}" th:object="${calculo}" method="post" class="grid" novalidate>
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <div class="form-group">
+                <label for="kilos">Kilos Recibidos:</label>
+                <input id="kilos" type="number" th:field="*{kilos}" required placeholder="Ej: 5000" min="1" max="1000000" step="0.01" onchange="validarRango(this)">
+                <p class="field-error" th:if="${#fields.hasErrors('kilos')}" th:errors="*{kilos}"></p>
+            </div>
+
+            <div class="form-group">
+                <label for="tiempoObjetivo">Tiempo Objetivo (Horas):</label>
+                <input id="tiempoObjetivo" type="number" th:field="*{tiempoObjetivo}" required placeholder="Ej: 8" min="1" max="24" step="0.1" onchange="validarRango(this)">
+                <p class="field-error" th:if="${#fields.hasErrors('tiempoObjetivo')}" th:errors="*{tiempoObjetivo}"></p>
+            </div>
+
+            <div class="form-feedback">
+                <p id="tiempoEfectivo" class="preview-text">Tiempo efectivo estimado: no calculado</p>
+                <p id="alertaTiempo" class="field-error" aria-live="polite"></p>
+            </div>
+
+            <button type="submit" class="btn-calc">Calcular Requerimiento</button>
+        </form>
+    </section>
+
+    <section th:if="${necesarios != null}" class="panel-section" aria-labelledby="result-title">
+        <h3 id="result-title" class="section-title">Comparativa de Capacidad Operativa</h3>
+
+        <div class="table-wrapper">
+            <table id="tablaResultados">
+                <caption>Comparacion de personal necesario vs disponible por rol</caption>
+                <thead>
+                <tr>
+                    <th scope="col">Rol de Personal</th>
+                    <th scope="col">Necesarios</th>
+                    <th scope="col">Disponibles (DB)</th>
+                    <th scope="col">Estado</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="entry : ${necesarios}"
+                    th:classappend="${entry.value > disponibles.get(entry.key)} ? 'alert-row' : ''">
+                    <th scope="row" th:text="${entry.key}"></th>
+                    <td th:text="${entry.value}"></td>
+                    <td th:text="${disponibles.get(entry.key)}"></td>
+                    <td>
+                        <span th:if="${entry.value > disponibles.get(entry.key)}" class="status-warn" data-estado="insuficiente">
+                            Insuficiente
+                        </span>
+                        <span th:unless="${entry.value > disponibles.get(entry.key)}" class="status-ok" data-estado="cubierto">
+                            Cubierto
+                        </span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="info-box">
+            <p>
+                <strong>Nota:</strong> El cálculo considera automáticamente <strong>1 hora de improductividad</strong>
+                promedio.
+            </p>
+        </div>
+    </section>
+</main>
+
+<footer class="page-footer">
+    <small>Modulo 1 - Analisis de Carga</small>
+</footer>
+
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

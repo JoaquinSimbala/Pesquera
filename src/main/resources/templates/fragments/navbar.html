@@ -1,0 +1,24 @@
+<nav th:fragment="menu" class="navbar">
+    <div class="nav-brand">PESQUERA - GESTIÓN</div>
+    <ul class="nav-links">
+        <li>
+            <a th:href="@{/gerente}"
+               th:classappend="${modulo == 'carga' ? 'active' : ''}">
+                Módulo 1: Análisis de Carga
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/gerente/asignacion}"
+               th:classappend="${modulo == 'asignacion' ? 'active' : ''}">
+                Módulo 2: Asignación de Personal
+            </a>
+        </li>
+    </ul>
+    <div class="nav-user">
+        <span>Gerente</span>
+        <form th:action="@{/logout}" method="post" class="logout-form">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <button type="submit" class="btn-logout">Salir</button>
+        </form>
+    </div>
+</nav>
