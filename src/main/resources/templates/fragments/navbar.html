@@ -1,16 +1,19 @@
 <nav th:fragment="menu" class="navbar">
-    <div class="nav-brand">PESQUERA - GESTIÓN</div>
+    <div class="nav-brand">PESQUERA - GESTION</div>
     <ul class="nav-links">
         <li>
-            <a th:href="@{/gerente}"
-               th:classappend="${modulo == 'carga' ? 'active' : ''}">
-                Módulo 1: Análisis de Carga
+            <a th:href="@{/gerente}" th:classappend="${modulo == 'carga' ? 'active' : ''}">
+                Modulo 1: Analisis de Carga
             </a>
         </li>
         <li>
-            <a th:href="@{/gerente/asignacion}"
-               th:classappend="${modulo == 'asignacion' ? 'active' : ''}">
-                Módulo 2: Asignación de Personal
+            <a th:href="@{/gerente/asignacion}" th:classappend="${modulo == 'asignacion' ? 'active' : ''}">
+                Modulo 2: Asignacion de Personal
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/gerente/liquidaciones}" th:classappend="${modulo == 'liquidacion' ? 'active' : ''}">
+                Modulo 3: Liquidacion y Pagos
             </a>
         </li>
     </ul>

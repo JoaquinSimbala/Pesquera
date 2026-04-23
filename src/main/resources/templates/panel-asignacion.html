@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Gerencial - Asignación de Personal</title>
+    <title>Panel Gerencial - Asignacion de Personal</title>
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
 </head>
 <body>
@@ -12,39 +12,39 @@
 </header>
 
 <main class="container">
-    <h2 class="panel-title">Módulo 2: Asignación de Personal Automática</h2>
+    <h2 class="panel-title">Modulo 2: Asignacion de Personal Automatica</h2>
 
     <section th:if="${resultado == null}" class="panel-section">
-        <h3 class="section-title">Esperando cálculo...</h3>
-        <p>Aún no se ha realizado un cálculo de carga. Por favor ve al Módulo 1 para iniciar.</p>
-        <a th:href="@{/gerente}" class="btn-calc" style="text-decoration: none; display: inline-block; margin-top: 15px;">Ir a Análisis de Carga</a>
+        <h3 class="section-title">Esperando calculo...</h3>
+        <p>Aun no se ha realizado un calculo de carga. Por favor ve al Modulo 1 para iniciar.</p>
+        <a th:href="@{/gerente}" class="btn-calc" style="text-decoration: none; display: inline-block; margin-top: 15px;">Ir a Analisis de Carga</a>
     </section>
 
     <div th:if="${resultado != null}">
         <section class="panel-section">
-            <h3 class="section-title">Resultados de Asignación por Eficiencia</h3>
-            
+            <h3 class="section-title">Resultados de Asignacion por Eficiencia</h3>
+
             <div th:if="${resultado.deficitPersonal}" style="padding: 15px; margin-bottom: 20px; background-color: #ffebee; border: 1px solid #ffcdd2; color: #c62828; border-radius: 5px;">
-                <h4 style="margin-top: 0;">¡Advertencia de Capacidad Operativa!</h4>
+                <h4 style="margin-top: 0;">Advertencia de Capacidad Operativa</h4>
                 <p>El personal disponible actualmente <strong>NO alcanza</strong> para cumplir la meta de procesar <strong th:text="${calculo.kilos}"></strong> kg en <strong th:text="${calculo.tiempoObjetivo}"></strong> horas.</p>
                 <p>El sistema recomienda extender el tiempo objetivo a <strong style="font-size: 1.1em; text-decoration: underline;" th:text="${resultado.horasRecomendadas} + ' horas fijas'"></strong> para que el personal actual pueda cubrir la cuota exitosamente.</p>
             </div>
 
             <p><strong>Meta Actual:</strong> <span th:text="${calculo.kilos}"></span> kg en <span th:text="${calculo.tiempoObjetivo}"></span> h.</p>
-            <p style="margin-bottom: 20px;"><em>El personal listado a continuación ha sido seleccionado basándose en el promedio estricto de sus últimos 10 días de trabajo para garantizar cumplir con la meta de la planta.</em></p>
+            <p style="margin-bottom: 20px;"><em>El personal listado a continuacion ha sido seleccionado basandose en el promedio estricto de sus ultimos 10 dias de trabajo para garantizar cumplir con la meta de la planta.</em></p>
 
             <div th:each="entry : ${resultado.asignaciones}" class="table-wrapper" style="margin-bottom: 30px;">
                 <h4 style="color: #2c3e50; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
                     Rol: <span th:text="${entry.key}"></span>
                 </h4>
-                
+
                 <table th:if="${!entry.value.isEmpty()}">
                     <thead>
                     <tr>
                         <th scope="col">DNI</th>
                         <th scope="col">Nombre Completo</th>
                         <th scope="col">Rendimiento (kg/h)</th>
-                        <th scope="col">Estado de Selección</th>
+                        <th scope="col">Estado de Seleccion</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -62,14 +62,19 @@
             </div>
 
             <div class="action-box" style="text-align: right;">
-                <button class="btn-calc" onclick="alert('Asignación confirmada y guardada. (Conectará con Módulo 3)')">Confirmar Asignación Final</button>
+                <form th:action="@{/gerente/asignacion/liquidaciones}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <input type="hidden" name="kilos" th:value="${calculo.kilos}">
+                    <input type="hidden" name="tiempoObjetivo" th:value="${calculo.tiempoObjetivo}">
+                    <button type="submit" class="btn-calc">Continuar a Modulo 3 con esta asignacion</button>
+                </form>
             </div>
         </section>
     </div>
 </main>
 
 <footer class="page-footer">
-    <small>Modulo 2 - Asignación de Personal</small>
+    <small>Modulo 2 - Asignacion de Personal</small>
 </footer>
 
 <script th:src="@{/js/dashboard.js}"></script>

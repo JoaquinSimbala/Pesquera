@@ -188,6 +188,25 @@ tbody th[scope="row"] {
     color: var(--color-muted);
 }
 
+.liquidaciones-wide {
+    max-width: calc(100vw - 3rem);
+}
+
+.liquidaciones-table-wrapper {
+    overflow-x: visible;
+}
+
+.liquidaciones-table-wrapper table {
+    min-width: 0;
+    table-layout: fixed;
+}
+
+.liquidaciones-table-wrapper th,
+.liquidaciones-table-wrapper td {
+    white-space: normal;
+    word-break: break-word;
+}
+
 .navbar {
     background: var(--color-primary-dark);
     padding: 1rem 2rem;

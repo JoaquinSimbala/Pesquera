@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Gerencial - Liquidacion y Pagos</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+<header>
+    <div th:replace="~{fragments/navbar :: menu}"></div>
+</header>
+
+<main class="container liquidaciones-wide">
+    <h2 class="panel-title">Modulo 3: Liquidacion y Pagos por Productividad</h2>
+
+    <section class="panel-section">
+        <h3 class="section-title">Asignacion editable desde Modulo 2</h3>
+
+        <div th:if="${ok}" class="info-box" style="margin-bottom: 15px;">
+            <p th:text="${ok}"></p>
+        </div>
+
+        <div th:if="${!origenModulo2}" class="info-box" style="margin-bottom: 15px;">
+            <p>Para precargar trabajadores sugeridos, genera la asignacion en Modulo 2 y continua desde ese panel.</p>
+        </div>
+
+        <form th:if="${origenModulo2}" th:action="@{/gerente/liquidaciones/registrar-lote}" th:object="${planForm}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+            <div class="table-wrapper liquidaciones-table-wrapper">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Rol</th>
+                        <th>Trabajador</th>
+                        <th>Proceso</th>
+                        <th>Kilos</th>
+                        <th>Tarifa</th>
+                        <th>Fecha</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item, stat : *{items}">
+                        <td>
+                            <input type="text" th:field="*{items[__${stat.index}__].rolOperativo}" readonly>
+                        </td>
+                        <td>
+                            <select th:field="*{items[__${stat.index}__].trabajadorId}" required>
+                                <option value="">Selecciona...</option>
+                                <option th:each="t : ${trabajadoresPorRol[item.rolOperativo]}" th:value="${t.id}" th:text="${t.nombreCompleto + ' (' + t.dni + ')'}"></option>
+                            </select>
+                        </td>
+                        <td>
+                            <select th:field="*{items[__${stat.index}__].tipoProceso}" class="tipo-proceso" required>
+                                <option value="LAVADO">Lavado</option>
+                                <option value="FILETEADO">Fileteado</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" th:field="*{items[__${stat.index}__].kilosProcesados}" min="0.1" max="1000000" step="0.01" required>
+                        </td>
+                        <td>
+                            <input type="number" th:field="*{items[__${stat.index}__].tarifaPorKilo}" class="tarifa-kilo" min="0.01" max="1000" step="0.01" required>
+                        </td>
+                        <td>
+                            <input type="date" th:field="*{items[__${stat.index}__].fechaProduccion}" required>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(planForm.items)}">
+                        <td colspan="6">No hay filas para liquidar.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="field-error" th:if="${#fields.hasAnyErrors()}">Revisa los datos del lote antes de registrar.</p>
+            <div class="action-box" style="margin-top: 15px; text-align: right;">
+                <button type="submit" class="btn-calc">Registrar liquidaciones del lote</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="panel-section">
+        <h3 class="section-title">Resumen financiero</h3>
+        <div class="grid">
+            <div class="info-box"><p><strong>Registros:</strong> <span th:text="${resumen.totalRegistros}"></span></p></div>
+            <div class="info-box"><p><strong>Pendientes:</strong> <span th:text="${resumen.pendientesAprobacion}"></span></p></div>
+            <div class="info-box"><p><strong>Total:</strong> S/ <span th:text="${#numbers.formatDecimal(resumen.montoTotal,1,2)}"></span></p></div>
+            <div class="info-box"><p><strong>Aprobado:</strong> S/ <span th:text="${#numbers.formatDecimal(resumen.montoAprobado,1,2)}"></span></p></div>
+        </div>
+        <div class="info-box" style="margin-top: 15px;">
+            <p><strong>Pendiente por pagar:</strong> S/ <span th:text="${#numbers.formatDecimal(resumen.montoPendiente,1,2)}"></span></p>
+        </div>
+    </section>
+
+    <section class="panel-section">
+        <h3 class="section-title">Liquidaciones registradas</h3>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Trabajador</th>
+                    <th>Proceso</th>
+                    <th>Kilos</th>
+                    <th>Tarifa</th>
+                    <th>Monto</th>
+                    <th>Estado</th>
+                    <th>Accion</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="l : ${liquidaciones}">
+                    <td th:text="${l.fechaProduccion}"></td>
+                    <td th:text="${l.trabajador.nombreCompleto}"></td>
+                    <td th:text="${l.tipoProceso}"></td>
+                    <td th:text="${#numbers.formatDecimal(l.kilosProcesados,1,2)}"></td>
+                    <td>S/ <span th:text="${#numbers.formatDecimal(l.tarifaPorKilo,1,2)}"></span></td>
+                    <td><strong>S/ <span th:text="${#numbers.formatDecimal(l.montoTotal,1,2)}"></span></strong></td>
+                    <td>
+                        <span th:if="${l.aprobado}" class="status-ok">Aprobado</span>
+                        <span th:unless="${l.aprobado}" class="status-warn">Pendiente</span>
+                    </td>
+                    <td>
+                        <form th:if="${!l.aprobado}" th:action="@{/gerente/liquidaciones/{id}/aprobar(id=${l.id})}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <button class="btn-calc" type="submit" style="padding: 0.45rem 0.65rem; font-size: 0.85rem;">Aprobar</button>
+                        </form>
+                        <span th:if="${l.aprobado}" class="status-ok">Listo</span>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(liquidaciones)}">
+                    <td colspan="8">No hay liquidaciones registradas aun.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<footer class="page-footer">
+    <small>Modulo 3 - Liquidacion y Pagos</small>
+</footer>
+
+<script th:inline="javascript">
+    (function () {
+        const tarifas = [[${tarifas}]];
+        const hoy = new Date().toISOString().split("T")[0];
+        const filas = document.querySelectorAll(".liquidaciones-table-wrapper tbody tr");
+        filas.forEach(function (fila) {
+            const tipoProceso = fila.querySelector(".tipo-proceso");
+            const tarifaInput = fila.querySelector(".tarifa-kilo");
+            const fechaInput = fila.querySelector('input[type="date"]');
+            if (!tipoProceso || !tarifaInput) {
+                return;
+            }
+            if (fechaInput && !fechaInput.value) {
+                fechaInput.value = hoy;
+            }
+            tipoProceso.addEventListener("change", function () {
+                const nuevaTarifa = tarifas[tipoProceso.value];
+                if (typeof nuevaTarifa === "number") {
+                    tarifaInput.value = nuevaTarifa.toFixed(2);
+                }
+            });
+        });
+    })();
+</script>
+</body>
+</html>

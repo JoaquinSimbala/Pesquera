@@ -19,8 +19,6 @@ public class RendimientoDiario {
     private Double kilosProcesados;
     private Double horasTrabajadas;
 
-    // Getters and Setters
-
     public Long getId() {
         return id;
     }
