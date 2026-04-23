@@ -17,14 +17,12 @@ public class LiquidacionPago {
     @JoinColumn(name = "trabajador_id", nullable = false)
     private Trabajador trabajador;
 
-    @Column(nullable = false, length = 20)
-    private String tipoProceso;
 
     @Column(nullable = false)
     private Double kilosProcesados;
 
     @Column(nullable = false)
-    private Double tarifaPorKilo;
+    private Double tarifaPorKilo; // Registro histórico del pago
 
     @Column(nullable = false)
     private Double montoTotal;
@@ -54,14 +52,6 @@ public class LiquidacionPago {
 
     public void setTrabajador(Trabajador trabajador) {
         this.trabajador = trabajador;
-    }
-
-    public String getTipoProceso() {
-        return tipoProceso;
-    }
-
-    public void setTipoProceso(String tipoProceso) {
-        this.tipoProceso = tipoProceso;
     }
 
     public Double getKilosProcesados() {

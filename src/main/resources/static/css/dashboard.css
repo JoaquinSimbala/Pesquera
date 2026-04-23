@@ -271,6 +271,7 @@ tbody th[scope="row"] {
     font: inherit;
 }
 
+
 @media (max-width: 900px) {
     .container {
         margin: var(--space-3) var(--space-2);
@@ -280,6 +281,7 @@ tbody th[scope="row"] {
     .navbar {
         flex-direction: column;
         align-items: stretch;
+        text-align: center;
     }
 
     .nav-links {
@@ -289,6 +291,12 @@ tbody th[scope="row"] {
 
     .nav-user {
         justify-content: center;
+        margin-top: 0.5rem;
+    }
+
+    .rate-banner {
+        flex-wrap: wrap;
+        gap: 10px;
     }
 }
 
@@ -305,6 +313,8 @@ tbody th[scope="row"] {
 
     .container {
         border-radius: var(--radius-md);
+        width: 95%;
+        margin: 1rem auto;
     }
 
     .navbar {
@@ -318,5 +328,10 @@ tbody th[scope="row"] {
 
     .nav-links a {
         text-align: center;
+        padding: 0.75rem;
+    }
+
+    #tablaHistorial {
+        min-width: 600px;
     }
 }

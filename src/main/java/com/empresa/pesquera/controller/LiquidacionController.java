@@ -4,14 +4,11 @@ import com.empresa.pesquera.model.LiquidacionPago;
 import com.empresa.pesquera.model.PlanLiquidacionForm;
 import com.empresa.pesquera.service.LiquidacionService;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
@@ -54,11 +51,16 @@ public class LiquidacionController {
         return "redirect:/gerente/liquidaciones";
     }
 
+
     @PostMapping("/{id}/aprobar")
-    public String aprobar(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        liquidacionService.aprobarLiquidacion(id);
-        redirectAttributes.addFlashAttribute("ok", "Pago aprobado.");
-        return "redirect:/gerente/liquidaciones";
+    @ResponseBody
+    public ResponseEntity<?> aprobar(@PathVariable Long id) {
+        try {
+            liquidacionService.aprobarLiquidacion(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al aprobar el pago.");
+        }
     }
 
     private void cargarDatosVista(Model model) {
@@ -66,7 +68,7 @@ public class LiquidacionController {
         model.addAttribute("trabajadoresPorRol", liquidacionService.trabajadoresDisponiblesPorRol());
         model.addAttribute("liquidaciones", liquidaciones);
         model.addAttribute("resumen", liquidacionService.construirResumen(liquidaciones));
-        model.addAttribute("tarifas", liquidacionService.tarifasBase());
+        model.addAttribute("tarifas", liquidacionService.tarifasOficiales());
         model.addAttribute("modulo", "liquidacion");
     }
 }

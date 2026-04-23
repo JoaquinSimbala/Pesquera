@@ -1,10 +1,6 @@
 package com.empresa.pesquera.service;
 
-import com.empresa.pesquera.model.CalculoCarga;
-import com.empresa.pesquera.model.ItemLiquidacionForm;
-import com.empresa.pesquera.model.LiquidacionPago;
-import com.empresa.pesquera.model.PlanLiquidacionForm;
-import com.empresa.pesquera.model.Trabajador;
+import com.empresa.pesquera.model.*;
 import com.empresa.pesquera.repository.LiquidacionPagoRepository;
 import com.empresa.pesquera.repository.TrabajadorRepository;
 import org.springframework.stereotype.Service;
@@ -14,11 +10,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class LiquidacionService {
@@ -31,68 +23,45 @@ public class LiquidacionService {
         this.trabajadorRepository = trabajadorRepository;
     }
 
+    public Map<String, Double> tarifasOficiales() {
+        return Map.of("Apoyos", 0.80, "Limpieza", 1.50, "Clasificado", 1.00, "Envasado", 0.90);
+    }
+
     public List<LiquidacionPago> listarLiquidaciones() {
         return liquidacionPagoRepository.findAllByOrderByFechaRegistroDesc();
-    }
-
-    public Map<String, Double> tarifasBase() {
-        return Map.of(
-                "LAVADO", 1.20,
-                "FILETEADO", 1.80
-        );
-    }
-
-    public Map<String, List<Trabajador>> trabajadoresDisponiblesPorRol() {
-        String[] roles = {"Apoyos", "Limpieza", "Clasificado", "Envasado"};
-        Map<String, List<Trabajador>> data = new LinkedHashMap<>();
-        for (String rol : roles) {
-            List<Trabajador> trabajadores = new ArrayList<>(trabajadorRepository.findByRolOperativoAndDisponibleTrue(rol));
-            trabajadores.sort(Comparator.comparing(Trabajador::getNombreCompleto));
-            data.put(rol, trabajadores);
-        }
-        return data;
     }
 
     public PlanLiquidacionForm construirPlanDesdeAsignacion(AsignacionService.AsignacionResultado resultado, CalculoCarga calculo) {
         PlanLiquidacionForm plan = new PlanLiquidacionForm();
         List<ItemLiquidacionForm> items = new ArrayList<>();
-        double horasEfectivas = calculo.getTiempoObjetivo() != null ? Math.max(0, calculo.getTiempoObjetivo() - 1) : 0;
+        double horas = calculo.getTiempoObjetivo() != null ? Math.max(0, calculo.getTiempoObjetivo() - 1) : 0;
 
         for (Map.Entry<String, List<AsignacionService.TrabajadorConRendimiento>> entry : resultado.getAsignaciones().entrySet()) {
-            String rol = entry.getKey();
-            for (AsignacionService.TrabajadorConRendimiento candidato : entry.getValue()) {
+            for (AsignacionService.TrabajadorConRendimiento t : entry.getValue()) {
                 ItemLiquidacionForm item = new ItemLiquidacionForm();
-                item.setRolOperativo(rol);
-                item.setTrabajadorId(candidato.getTrabajador().getId());
-                item.setTipoProceso("LAVADO");
-                item.setTarifaPorKilo(1.20);
-                item.setFechaProduccion(LocalDate.now());
-                item.setKilosProcesados(redondear(candidato.getRendimiento() * horasEfectivas));
+                item.setRolOperativo(entry.getKey());
+                item.setTrabajadorId(t.getTrabajador().getId());
+                item.setNombreTrabajador(t.getTrabajador().getNombreCompleto());
+                item.setKilosProcesados(redondear(t.getRendimiento() * horas));
                 items.add(item);
             }
         }
-
         plan.setItems(items);
         return plan;
     }
 
-    public PlanLiquidacionForm crearFormularioVacio() {
-        return new PlanLiquidacionForm();
-    }
-
     @Transactional
     public void registrarLiquidaciones(PlanLiquidacionForm plan) {
+        Map<String, Double> tarifas = tarifasOficiales();
         for (ItemLiquidacionForm item : plan.getItems()) {
-            Trabajador trabajador = trabajadorRepository.findById(item.getTrabajadorId())
-                    .orElseThrow(() -> new IllegalArgumentException("Trabajador no encontrado."));
-
+            Trabajador t = trabajadorRepository.findById(item.getTrabajadorId()).orElseThrow();
+            double tarifa = tarifas.getOrDefault(t.getRolOperativo(), 1.0);
             LiquidacionPago pago = new LiquidacionPago();
-            pago.setTrabajador(trabajador);
-            pago.setTipoProceso(item.getTipoProceso());
+            pago.setTrabajador(t);
             pago.setKilosProcesados(item.getKilosProcesados());
-            pago.setTarifaPorKilo(item.getTarifaPorKilo());
-            pago.setMontoTotal(calcularMonto(item.getKilosProcesados(), item.getTarifaPorKilo()));
-            pago.setFechaProduccion(item.getFechaProduccion());
+            pago.setTarifaPorKilo(tarifa);
+            pago.setMontoTotal(redondear(item.getKilosProcesados() * tarifa));
+            pago.setFechaProduccion(LocalDate.now());
             pago.setAprobado(false);
             pago.setFechaRegistro(LocalDateTime.now());
             liquidacionPagoRepository.save(pago);
@@ -101,41 +70,33 @@ public class LiquidacionService {
 
     @Transactional
     public void aprobarLiquidacion(Long id) {
-        LiquidacionPago pago = liquidacionPagoRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Liquidacion no encontrada."));
+        LiquidacionPago p = liquidacionPagoRepository.findById(id).orElseThrow();
+        p.setAprobado(true);
+        p.setFechaAprobacion(LocalDateTime.now());
+        liquidacionPagoRepository.save(p);
+    }
 
-        if (Boolean.TRUE.equals(pago.getAprobado())) {
-            return;
+    public ResumenLiquidacion construirResumen(List<LiquidacionPago> list) {
+        double tot = list.stream().mapToDouble(LiquidacionPago::getMontoTotal).sum();
+        double apr = list.stream().filter(LiquidacionPago::getAprobado).mapToDouble(LiquidacionPago::getMontoTotal).sum();
+        return new ResumenLiquidacion(list.size(), liquidacionPagoRepository.countByAprobadoFalse(), redondear(tot), redondear(apr), redondear(tot - apr));
+    }
+
+    private double redondear(double v) {
+        return BigDecimal.valueOf(v).setScale(2, RoundingMode.HALF_UP).doubleValue();
+    }
+
+    public PlanLiquidacionForm crearFormularioVacio() {
+        return new PlanLiquidacionForm();
+    }
+
+    public Map<String, List<Trabajador>> trabajadoresDisponiblesPorRol() {
+        String[] roles = {"Apoyos", "Limpieza", "Clasificado", "Envasado"};
+        Map<String, List<Trabajador>> data = new LinkedHashMap<>();
+        for (String rol : roles) {
+            data.put(rol, trabajadorRepository.findByRolOperativoAndDisponibleTrue(rol));
         }
-
-        pago.setAprobado(true);
-        pago.setFechaAprobacion(LocalDateTime.now());
-        liquidacionPagoRepository.save(pago);
-    }
-
-    public ResumenLiquidacion construirResumen(List<LiquidacionPago> liquidaciones) {
-        double total = liquidaciones.stream().mapToDouble(LiquidacionPago::getMontoTotal).sum();
-        double aprobado = liquidaciones.stream()
-                .filter(LiquidacionPago::getAprobado)
-                .mapToDouble(LiquidacionPago::getMontoTotal)
-                .sum();
-        double pendiente = total - aprobado;
-
-        return new ResumenLiquidacion(
-                liquidaciones.size(),
-                liquidacionPagoRepository.countByAprobadoFalse(),
-                redondear(total),
-                redondear(aprobado),
-                redondear(pendiente)
-        );
-    }
-
-    private double calcularMonto(double kilos, double tarifa) {
-        return redondear(kilos * tarifa);
-    }
-
-    private double redondear(double valor) {
-        return BigDecimal.valueOf(valor).setScale(2, RoundingMode.HALF_UP).doubleValue();
+        return data;
     }
 
     public static class ResumenLiquidacion {
@@ -145,12 +106,12 @@ public class LiquidacionService {
         private final double montoAprobado;
         private final double montoPendiente;
 
-        public ResumenLiquidacion(int totalRegistros, long pendientesAprobacion, double montoTotal, double montoAprobado, double montoPendiente) {
-            this.totalRegistros = totalRegistros;
-            this.pendientesAprobacion = pendientesAprobacion;
-            this.montoTotal = montoTotal;
-            this.montoAprobado = montoAprobado;
-            this.montoPendiente = montoPendiente;
+        public ResumenLiquidacion(int tr, long pa, double mt, double ma, double mp) {
+            this.totalRegistros = tr;
+            this.pendientesAprobacion = pa;
+            this.montoTotal = mt;
+            this.montoAprobado = ma;
+            this.montoPendiente = mp;
         }
 
         public int getTotalRegistros() {
