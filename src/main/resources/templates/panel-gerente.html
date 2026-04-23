@@ -80,6 +80,14 @@
                 promedio.
             </p>
         </div>
+
+        <div class="action-box" style="margin-top: 20px; text-align: center;">
+            <form th:action="@{/gerente/asignacion/generar}" method="post">
+                <input type="hidden" name="kilos" th:value="${calculo.kilos}">
+                <input type="hidden" name="tiempoObjetivo" th:value="${calculo.tiempoObjetivo}">
+                <button type="submit" class="btn-calc" style="background-color: #2e8b57;">Generar Asignación Automática (Módulo 2)</button>
+            </form>
+        </div>
     </section>
 </main>
 

@@ -13,8 +13,6 @@ import java.util.Collections;
 @Service
 public class UsuarioService implements UserDetailsService {
 
-    //Inyección por constructor
-
     private final UsuarioRepository repository;
 
     public UsuarioService(UsuarioRepository repository) {
@@ -30,7 +28,6 @@ public class UsuarioService implements UserDetailsService {
         return new User(
                 usuario.getUsername(),
                 usuario.getPassword(),
-                Collections.singleton(() -> "ROLE_" + usuario.getRol())
-        );
+                Collections.singleton(() -> "ROLE_" + usuario.getRol()));
     }
 }

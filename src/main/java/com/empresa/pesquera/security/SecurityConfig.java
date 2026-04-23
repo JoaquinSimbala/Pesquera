@@ -7,15 +7,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-//Esta clase contiene configuración del sistema
 @Configuration
 public class SecurityConfig {
 
-    //Este objeto lo va a gestionar Spring
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception{
+    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login","/css/**","/js/**").permitAll()
+                .requestMatchers("/login", "/css/**", "/js/**").permitAll()
                 .requestMatchers("/supervisor").hasRole("SUPERVISOR")
                 .requestMatchers("/gerente/**").hasRole("GERENTE")
                 .anyRequest().authenticated()
@@ -25,14 +23,12 @@ public class SecurityConfig {
         httpSecurity.formLogin(form -> form
                 .loginPage("/login")
                 .defaultSuccessUrl("/redirigir", true)
-                .permitAll()
-        );
+                .permitAll());
 
         httpSecurity.logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout")
-                .permitAll()
-        );
+                .permitAll());
 
         return httpSecurity.build();
     }

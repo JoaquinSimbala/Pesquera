@@ -2,6 +2,8 @@ package com.empresa.pesquera.controller;
 
 import com.empresa.pesquera.model.CalculoCarga;
 import com.empresa.pesquera.service.CalculoService;
+import com.empresa.pesquera.service.AsignacionService;
+import com.empresa.pesquera.repository.TrabajadorRepository;
 import jakarta.validation.Valid;
 
 import org.springframework.stereotype.Controller;
@@ -20,9 +22,13 @@ import java.util.Map;
 public class PanelController {
 
     private final CalculoService calculoService;
+    private final AsignacionService asignacionService;
+    private final TrabajadorRepository trabajadorRepository;
 
-    public PanelController(CalculoService calculoService) {
+    public PanelController(CalculoService calculoService, AsignacionService asignacionService, TrabajadorRepository trabajadorRepository) {
         this.calculoService = calculoService;
+        this.asignacionService = asignacionService;
+        this.trabajadorRepository = trabajadorRepository;
     }
 
     /**
@@ -52,13 +58,12 @@ public class PanelController {
         // Llamada al motor de cálculo.
         Map<String, Integer> necesarios = calculoService.calcularPersonalPulpo(calculo);
 
-        // MOCK DATA: Simulación temporal de la base de datos de empleados por rol.
-        // Esto permite validar si hay suficiente gente antes de que el Módulo 2 sea real.
+        // Datos reales de la base de datos de empleados por rol.
         Map<String, Integer> disponibles = new LinkedHashMap<>();
-        disponibles.put("Apoyos", 10);
-        disponibles.put("Limpieza", 50);
-        disponibles.put("Clasificado", 15);
-        disponibles.put("Envasado", 20);
+        disponibles.put("Apoyos", trabajadorRepository.findByRolOperativoAndDisponibleTrue("Apoyos").size());
+        disponibles.put("Limpieza", trabajadorRepository.findByRolOperativoAndDisponibleTrue("Limpieza").size());
+        disponibles.put("Clasificado", trabajadorRepository.findByRolOperativoAndDisponibleTrue("Clasificado").size());
+        disponibles.put("Envasado", trabajadorRepository.findByRolOperativoAndDisponibleTrue("Envasado").size());
 
         // Pasamos toda la información a la vista (Thymeleaf).
         model.addAttribute("necesarios", necesarios);
@@ -70,7 +75,21 @@ public class PanelController {
     }
 
     /**
-     * Ruta para el Módulo 2. Por ahora solo muestra una página de construcción.
+     * Ruta para el Módulo 2. Recibe los datos del cálculo y genera la asignación automática.
+     */
+    @PostMapping("/asignacion/generar")
+    public String generarAsignacion(@ModelAttribute("calculo") CalculoCarga calculo, Model model) {
+        // Llamamos al servicio de asignación para obtener al mejor personal disponible
+        AsignacionService.AsignacionResultado resultado = asignacionService.sugerirAsignacionGlobal(calculo);
+
+        model.addAttribute("resultado", resultado);
+        model.addAttribute("calculo", calculo);
+        model.addAttribute("modulo", "asignacion");
+        return "panel-asignacion";
+    }
+
+    /**
+     * Ruta GET normal en caso de que quieran acceder sin cálculo
      */
     @GetMapping("/asignacion")
     public String moduloAsignacion(Model model) {
