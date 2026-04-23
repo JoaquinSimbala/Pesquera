@@ -24,7 +24,7 @@ public class LiquidacionService {
     }
 
     public Map<String, Double> tarifasOficiales() {
-        return Map.of("Apoyos", 0.80, "Limpieza", 1.50, "Clasificado", 1.00, "Envasado", 0.90);
+        return Map.of("Apoyos", 0.05, "Limpieza", 0.15, "Clasificado", 0.12, "Envasado", 0.10);
     }
 
     public List<LiquidacionPago> listarLiquidaciones() {
