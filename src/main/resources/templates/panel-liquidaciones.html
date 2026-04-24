@@ -3,60 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <title>Panel Gerencial - Liquidación</title>
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
-    <style>
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .worker-card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid #d8e1e1;
-            transition: 0.3s;
-            position: relative;
-        }
-
-        .worker-card.calculated {
-            border-color: #2e7d32;
-            background-color: #f1f8e9;
-        }
-
-        .worker-card.calculated input {
-            background: #e8f5e9;
-            pointer-events: none;
-        }
-
-        .rate-banner {
-            background: #e0f2f1;
-            padding: 15px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 25px;
-            border: 1px solid #b2dfdb;
-            flex-wrap: wrap; 
-            gap: 10px;
-        }
-
-        .pago-final {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #2e7d32;
-            display: block;
-            margin-top: 10px;
-        }
-
-        .btn-register-main:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/panel-liquidaciones.css}">
 </head>
 <body>
 <header>
@@ -67,7 +18,7 @@
     <h2 class="panel-title">Módulo 3: Liquidación y Pagos</h2>
 
     <div class="rate-banner">
-        <div th:each="t : ${tarifas}" style="min-width: 140px; text-align: center;">
+        <div th:each="t : ${tarifas}" class="rate-item" th:data-rol="${t.key}" th:data-tarifa="${t.value}">
             <strong th:text="${t.key}"></strong>: S/ <span th:text="${#numbers.formatDecimal(t.value, 1, 2)}"></span>
         </div>
     </div>
@@ -86,22 +37,19 @@
                     <input type="hidden" th:field="*{items[__${stat.index}__].rolOperativo}">
                     <input type="hidden" th:field="*{items[__${stat.index}__].nombreTrabajador}">
 
-                    <h4 style="color: #0f9b8e;" th:text="${item.nombreTrabajador}"></h4>
+                    <h4 class="worker-name" th:text="${item.nombreTrabajador}"></h4>
                     <p><strong>Rol:</strong> <span th:text="${item.rolOperativo}"></span></p>
 
                     <label th:for="'kilos-' + ${stat.index}">Kilos Procesados:</label>
                     <input th:id="'kilos-' + ${stat.index}" type="number"
                            th:field="*{items[__${stat.index}__].kilosProcesados}"
-                           step="0.01" class="input-kilos" th:data-rol="${item.rolOperativo}" style="width: 100%;">
+                           step="0.01" class="input-kilos input-full-width" th:data-rol="${item.rolOperativo}">
 
-                    <div class="card-actions" style="margin-top: 15px; display: flex; gap: 10px;">
-                        <button type="button" class="btn-calc btn-main-action"
-                                style="padding: 5px 10px; font-size: 0.8rem;" onclick="procesarCalculo(this)">
+                    <div class="card-actions card-actions-inline">
+                        <button type="button" class="btn-calc btn-main-action btn-compact">
                             Calcular Pago
                         </button>
-                        <button type="button" class="btn-calc btn-modify"
-                                style="display:none; padding: 5px 10px; font-size: 0.8rem; background: #607d8b;"
-                                onclick="habilitarEdicion(this)">
+                        <button type="button" class="btn-calc btn-modify btn-compact btn-modify-compact">
                             Modificar
                         </button>
                     </div>
@@ -109,12 +57,11 @@
                 </div>
             </div>
 
-            <div class="action-box" style="margin-top: 30px; text-align: center;">
-                <button type="submit" id="btnRegistrarLote" class="btn-calc btn-register-main"
-                        style="background: #2e7d32; width: auto; padding: 10px 40px;" disabled>
+            <div class="action-box action-box-lote">
+                <button type="submit" id="btnRegistrarLote" class="btn-calc btn-register-main" disabled>
                     Registrar Lote de Producción
                 </button>
-                <p id="msgValidacion" style="color: #d32f2f; margin-top: 10px;">Debes calcular todos los pagos antes de
+                <p id="msgValidacion" class="msg-validacion">Debes calcular todos los pagos antes de
                     registrar.</p>
             </div>
         </form>
@@ -145,9 +92,8 @@
                     <td class="status-cell" th:classappend="${l.aprobado ? 'status-ok' : 'status-warn'}"
                         th:text="${l.aprobado ? 'Aprobado' : 'Pendiente'}"></td>
                     <td>
-                        <button th:if="${!l.aprobado}" class="btn-calc btn-aprobar-ajax"
-                                style="padding: 5px 10px; font-size: 0.8rem;"
-                                th:onclick="'ejecutarAprobacionAjax(' + ${l.id} + ', this)'">Aprobar
+                        <button th:if="${!l.aprobado}" class="btn-calc btn-aprobar-ajax btn-compact"
+                                th:data-liquidacion-id="${l.id}">Aprobar
                         </button>
                     </td>
                 </tr>
@@ -157,71 +103,6 @@
     </section>
 </main>
 
-<script th:inline="javascript">
-    const TARIFAS = /*[[${tarifas}]]*/ {};
-    const CSRF_TOKEN = /*[[${_csrf.token}]]*/ '';
-    const CSRF_HEADER = /*[[${_csrf.headerName}]]*/ 'X-CSRF-TOKEN';
-
-    function procesarCalculo(btn) {
-        const card = btn.closest('.worker-card');
-        const input = card.querySelector('.input-kilos');
-        const kilos = parseFloat(input.value) || 0;
-        const rol = input.getAttribute('data-rol');
-        const tarifa = TARIFAS[rol] || 0;
-
-        card.querySelector('.pago-final').textContent = "Total: S/ " + (kilos * tarifa).toFixed(2);
-
-        card.classList.add('calculated');
-        btn.style.display = 'none';
-        card.querySelector('.btn-modify').style.display = 'inline-block';
-
-        verificarFormularioCompleto();
-    }
-
-    function habilitarEdicion(btn) {
-        const card = btn.closest('.worker-card');
-        card.classList.remove('calculated');
-        btn.style.display = 'none';
-        card.querySelector('.btn-main-action').style.display = 'inline-block';
-        verificarFormularioCompleto();
-    }
-
-    function verificarFormularioCompleto() {
-        const totalTarjetas = document.querySelectorAll('.worker-card').length;
-        const calculadas = document.querySelectorAll('.worker-card.calculated').length;
-        const btnReg = document.getElementById('btnRegistrarLote');
-        const msg = document.getElementById('msgValidacion');
-
-        if (totalTarjetas > 0 && calculadas === totalTarjetas) {
-            btnReg.disabled = false;
-            msg.style.display = 'none';
-        } else {
-            btnReg.disabled = true;
-            msg.style.display = 'block';
-        }
-    }
-
-    async function ejecutarAprobacionAjax(id, btn) {
-        try {
-            const response = await fetch(`/gerente/liquidaciones/${id}/aprobar`, {
-                method: 'POST',
-                headers: {[CSRF_HEADER]: CSRF_TOKEN}
-            });
-
-            if (response.ok) {
-                const row = document.getElementById('row-' + id);
-                const statusCell = row.querySelector('.status-cell');
-                statusCell.textContent = 'Aprobado';
-                statusCell.classList.remove('status-warn');
-                statusCell.classList.add('status-ok');
-                btn.remove();
-            } else {
-                alert("No se pudo aprobar el pago.");
-            }
-        } catch (error) {
-            console.error("Error en AJAX:", error);
-        }
-    }
-</script>
+<script th:src="@{/js/panel-liquidaciones.js}" defer></script>
 </body>
 </html>

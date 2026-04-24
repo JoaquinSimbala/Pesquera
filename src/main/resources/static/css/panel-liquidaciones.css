@@ -1,0 +1,95 @@
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.worker-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #d8e1e1;
+    transition: 0.3s;
+    position: relative;
+}
+
+.worker-card.calculated {
+    border-color: #2e7d32;
+    background-color: #f1f8e9;
+}
+
+.worker-card.calculated input {
+    background: #e8f5e9;
+    pointer-events: none;
+}
+
+.rate-banner {
+    background: #e0f2f1;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 25px;
+    border: 1px solid #b2dfdb;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.rate-item {
+    min-width: 140px;
+    text-align: center;
+}
+
+.worker-name {
+    color: #0f9b8e;
+}
+
+.input-full-width {
+    width: 100%;
+}
+
+.card-actions-inline {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.btn-compact {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+}
+
+.btn-modify-compact {
+    display: none;
+    background: #607d8b;
+}
+
+.pago-final {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #2e7d32;
+    display: block;
+    margin-top: 10px;
+}
+
+.action-box-lote {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.btn-register-main {
+    background: #2e7d32;
+    width: auto;
+    padding: 10px 40px;
+}
+
+.btn-register-main:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.msg-validacion {
+    color: #d32f2f;
+    margin-top: 10px;
+}
