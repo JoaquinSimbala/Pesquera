@@ -17,24 +17,24 @@
     <section th:if="${resultado == null}" class="panel-section">
         <h3 class="section-title">Esperando calculo...</h3>
         <p>Aun no se ha realizado un calculo de carga. Por favor ve al Modulo 1 para iniciar.</p>
-        <a th:href="@{/gerente}" class="btn-calc" style="text-decoration: none; display: inline-block; margin-top: 15px;">Ir a Analisis de Carga</a>
+        <a th:href="@{/gerente}" class="btn-calc btn-calc--link">Ir a Analisis de Carga</a>
     </section>
 
     <div th:if="${resultado != null}">
         <section class="panel-section">
             <h3 class="section-title">Resultados de Asignacion por Eficiencia</h3>
 
-            <div th:if="${resultado.deficitPersonal}" style="padding: 15px; margin-bottom: 20px; background-color: #ffebee; border: 1px solid #ffcdd2; color: #c62828; border-radius: 5px;">
-                <h4 style="margin-top: 0;">Advertencia de Capacidad Operativa</h4>
+            <div th:if="${resultado.deficitPersonal}" class="alert-deficit">
+                <h4 class="alert-deficit__title">Advertencia de Capacidad Operativa</h4>
                 <p>El personal disponible actualmente <strong>NO alcanza</strong> para cumplir la meta de procesar <strong th:text="${calculo.kilos}"></strong> kg en <strong th:text="${calculo.tiempoObjetivo}"></strong> horas.</p>
-                <p>El sistema recomienda extender el tiempo objetivo a <strong style="font-size: 1.1em; text-decoration: underline;" th:text="${resultado.horasRecomendadas} + ' horas fijas'"></strong> para que el personal actual pueda cubrir la cuota exitosamente.</p>
+                <p>El sistema recomienda extender el tiempo objetivo a <strong class="horas-recomendadas" th:text="${resultado.horasRecomendadas} + ' horas fijas'"></strong> para que el personal actual pueda cubrir la cuota exitosamente.</p>
             </div>
 
             <p><strong>Meta Actual:</strong> <span th:text="${calculo.kilos}"></span> kg en <span th:text="${calculo.tiempoObjetivo}"></span> h.</p>
-            <p style="margin-bottom: 20px;"><em>El personal listado a continuacion ha sido seleccionado basandose en el promedio estricto de sus ultimos 10 dias de trabajo para garantizar cumplir con la meta de la planta.</em></p>
+            <p class="nota-metodologia"><em>El personal listado a continuacion ha sido seleccionado basandose en el promedio estricto de sus ultimos 10 dias de trabajo para garantizar cumplir con la meta de la planta.</em></p>
 
-            <div th:each="entry : ${resultado.asignaciones}" class="table-wrapper" style="margin-bottom: 30px;">
-                <h4 style="color: #2c3e50; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+            <div th:each="entry : ${resultado.asignaciones}" class="table-wrapper table-wrapper--spaced">
+                <h4 class="rol-header">
                     Rol: <span th:text="${entry.key}"></span>
                 </h4>
 
@@ -56,12 +56,12 @@
                     </tr>
                     </tbody>
                 </table>
-                <p th:if="${entry.value.isEmpty()}" style="color: #c0392b; font-weight: bold;">
+                <p th:if="${entry.value.isEmpty()}" class="sin-trabajadores">
                     No hay trabajadores disponibles o suficientes para cubrir este rol.
                 </p>
             </div>
 
-            <div class="action-box" style="text-align: right;">
+            <div class="action-box action-box--right">
                 <form th:action="@{/gerente/asignacion/liquidaciones}" method="post">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                     <input type="hidden" name="kilos" th:value="${calculo.kilos}">

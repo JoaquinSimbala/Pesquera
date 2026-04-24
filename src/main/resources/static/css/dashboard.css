@@ -207,6 +207,56 @@ tbody th[scope="row"] {
     word-break: break-word;
 }
 
+/* ── panel-asignacion ────────────────────────────────────── */
+
+.btn-calc--link {
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 15px;
+}
+
+.alert-deficit {
+    padding: 15px;
+    margin-bottom: 20px;
+    background-color: #ffebee;
+    border: 1px solid #ffcdd2;
+    color: #c62828;
+    border-radius: 5px;
+}
+
+.alert-deficit__title {
+    margin-top: 0;
+}
+
+.horas-recomendadas {
+    font-size: 1.1em;
+    text-decoration: underline;
+}
+
+.nota-metodologia {
+    margin-bottom: 20px;
+}
+
+.table-wrapper--spaced {
+    margin-bottom: 30px;
+}
+
+.rol-header {
+    color: #2c3e50;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}
+
+.sin-trabajadores {
+    color: #c0392b;
+    font-weight: bold;
+}
+
+.action-box--right {
+    text-align: right;
+}
+
 .navbar {
     background: var(--color-primary-dark);
     padding: 1rem 2rem;
