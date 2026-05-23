@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/public :: layout('Pesquera - Inicio de Sesion', ~{::styles}, ~{::content}, ~{::scripts})}">
+<th:block th:fragment="styles">
+    <link rel="stylesheet" th:href="@{/css/pages/login.css}">
+</th:block>
+<th:block th:fragment="content">
+    <main>
+        <div class="login-container">
+            <h2>Iniciar Sesión</h2>
+            <p class="login-subtitle">Ingresa con tus credenciales corporativas para obtener un token JWT</p>
+
+            <div id="loginStatus" class="alert alert-error" role="alert" aria-live="polite" style="display:none;"></div>
+
+            <form id="loginForm" method="post" th:attr="data-endpoint=@{/api/auth/login}">
+
+                <label for="username">Usuario:</label>
+                <input id="username" type="text" name="username" autocomplete="username" required>
+
+                <label for="password">Contraseña:</label>
+                <input id="password" type="password" name="password" autocomplete="current-password" required>
+
+                <p id="loginError" class="field-error" aria-live="polite"></p>
+
+                <button type="submit">Ingresar</button>
+            </form>
+        </div>
+    </main>
+</th:block>
+<th:block th:fragment="scripts">
+    <script th:src="@{/js/pages/login.js}"></script>
+</th:block>
+</html>
