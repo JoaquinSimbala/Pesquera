@@ -37,13 +37,19 @@ public class DataInitializer {
             gerente.setUsername("gerente_general");
             gerente.setPassword(passwordEncoder.encode("pota2026"));
             gerente.setRol("GERENTE");
-
             usuarioRepository.save(gerente);
             System.out.println("Usuario Gerente creado por defecto.");
+
+            Usuario supervisor = new Usuario();
+            supervisor.setUsername("supervisor_planta");
+            supervisor.setPassword(passwordEncoder.encode("planta2026"));
+            supervisor.setRol("SUPERVISOR");
+            usuarioRepository.save(supervisor);
+            System.out.println("Usuario Supervisor creado por defecto.");
         }
 
         if (trabajadorRepository.count() < 100) {
-            System.out.println("Limpiando y creando 117 trabajadores de prueba...");
+            System.out.println("Limpiando y creando trabajadores de prueba...");
 
             rendimientoRepository.deleteAll();
             trabajadorRepository.deleteAll();
@@ -57,12 +63,9 @@ public class DataInitializer {
         }
     }
 
-    private final String[] nombresMasc = {"Luis", "Carlos", "José", "Jorge", "Víctor", "Miguel", "Julio", "César",
-            "Manuel", "Martín", "Roberto", "Fernando"};
-    private final String[] nombresFem = {"María", "Rosa", "Ana", "Carmen", "Luz", "Silvia", "Elena", "Julia", "Mónica",
-            "Milagros", "Roxana", "Patricia"};
-    private final String[] apellidos = {"Quispe", "Flores", "Rodríguez", "Sánchez", "García", "Rojas", "Díaz",
-            "Huamán", "Mamani", "Vargas", "Ramos", "Mendoza", "Condori", "Castro"};
+    private final String[] nombresMasc = {"Luis", "Carlos", "José", "Jorge", "Víctor", "Miguel", "Julio", "César", "Manuel", "Martín", "Roberto", "Fernando"};
+    private final String[] nombresFem = {"María", "Rosa", "Ana", "Carmen", "Luz", "Silvia", "Elena", "Julia", "Mónica", "Milagros", "Roxana", "Patricia"};
+    private final String[] apellidos = {"Quispe", "Flores", "Rodríguez", "Sánchez", "García", "Rojas", "Díaz", "Huamán", "Mamani", "Vargas", "Ramos", "Mendoza", "Condori", "Castro"};
 
     private String generarNombrePeruano() {
         String nombre = Math.random() > 0.5

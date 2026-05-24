@@ -26,10 +26,9 @@ public class SecurityConfig {
         httpSecurity.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/","/login", "/css/**", "/js/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/supervisor").hasRole("SUPERVISOR")
-                .requestMatchers("/gerente/**").hasRole("GERENTE")
+                .requestMatchers("/supervisor/**", "/gerente/**", "/liquidacion/**", "/asignacion/**")
+                .hasAnyAuthority("SUPERVISOR", "ROLE_SUPERVISOR", "GERENTE", "ROLE_GERENTE")
                 .anyRequest().authenticated()
-
         );
 
         httpSecurity.sessionManagement(session -> session
@@ -52,5 +51,4 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
 }

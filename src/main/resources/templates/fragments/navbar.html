@@ -16,9 +16,14 @@
                 Modulo 3: Liquidacion y Pagos
             </a>
         </li>
+        <li>
+            <a th:href="@{/supervisor}" th:classappend="${modulo == 'inventario' ? 'active' : ''}">
+                Modulo 5: Inventario y Distribución
+            </a>
+        </li>
     </ul>
     <div class="nav-user">
-        <span id="navUserLabel">Gerente</span>
+        <span id="navUserLabel">Usuario Corporativo</span>
         <button type="button" id="btnLogout" class="btn-logout">Salir</button>
     </div>
 </nav>
