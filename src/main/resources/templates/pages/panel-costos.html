@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es"
+      th:replace="~{layouts/panel :: layout('Panel Gerencial - Costos', ~{::styles}, ~{::content}, ~{::scripts})}">
+<th:block th:fragment="styles">
+    <link rel="stylesheet" th:href="@{/css/pages/dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/pages/panel-costos.css}">
+</th:block>
+<th:block th:fragment="content">
+    <main class="container costos-wide">
+        <h2 class="panel-title">Modulo 04: Costos Operacionales</h2>
+
+        <section class="panel-section">
+            <h3 class="section-title">Resumen Administrativo</h3>
+            <div class="cost-summary">
+                <div class="summary-item">
+                    <span>Total del mes</span>
+                    <strong th:text="'S/ ' + ${#numbers.formatDecimal(resumen.totalMes, 1, 2)}"></strong>
+                </div>
+                <div class="summary-item">
+                    <span>Total historico</span>
+                    <strong th:text="'S/ ' + ${#numbers.formatDecimal(resumen.totalGeneral, 1, 2)}"></strong>
+                </div>
+                <div class="summary-item summary-item--categories">
+                    <span>Gasto mensual por categoria</span>
+                    <div th:if="${resumen.porCategoria.isEmpty()}">Sin registros este mes.</div>
+                    <div th:each="cat : ${resumen.porCategoria}">
+                        <b th:text="${cat.key}"></b>
+                        <strong th:text="'S/ ' + ${#numbers.formatDecimal(cat.value, 1, 2)}"></strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel-section">
+            <h3 class="section-title">Registrar Costo</h3>
+            <p class="alert-success" th:if="${ok}" th:text="${ok}"></p>
+
+            <form th:action="@{/gerente/costos/registrar}" th:object="${costoForm}" method="post" class="grid">
+                <div class="form-group">
+                    <label for="categoria">Categoria:</label>
+                    <select id="categoria" th:field="*{categoria}" required>
+                        <option value="">Seleccione categoria...</option>
+                        <option th:each="cat : ${categorias}" th:value="${cat}" th:text="${cat}"></option>
+                    </select>
+                    <p class="field-error" th:if="${#fields.hasErrors('categoria')}" th:errors="*{categoria}"></p>
+                </div>
+
+                <div class="form-group">
+                    <label for="fechaCosto">Fecha del costo:</label>
+                    <input type="date" id="fechaCosto" th:field="*{fechaCosto}" required>
+                    <p class="field-error" th:if="${#fields.hasErrors('fechaCosto')}" th:errors="*{fechaCosto}"></p>
+                </div>
+
+                <div class="form-group">
+                    <label for="concepto">Concepto:</label>
+                    <input type="text" id="concepto" th:field="*{concepto}" placeholder="Ej: Compra de guantes" required>
+                    <p class="field-error" th:if="${#fields.hasErrors('concepto')}" th:errors="*{concepto}"></p>
+                </div>
+
+                <div class="form-group">
+                    <label for="monto">Monto (S/):</label>
+                    <input type="number" id="monto" th:field="*{monto}" min="0.01" step="0.01" required>
+                    <p class="field-error" th:if="${#fields.hasErrors('monto')}" th:errors="*{monto}"></p>
+                </div>
+
+                <div class="form-group form-group--full">
+                    <label for="descripcion">Descripcion:</label>
+                    <textarea id="descripcion" th:field="*{descripcion}" rows="3" placeholder="Detalle opcional del gasto"></textarea>
+                </div>
+
+                <button type="submit" class="btn-calc">Registrar Costo</button>
+            </form>
+        </section>
+
+        <section class="panel-section">
+            <h3 class="section-title">Historial de Costos</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Categoria</th>
+                        <th>Concepto</th>
+                        <th>Monto</th>
+                        <th>Descripcion</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="costo : ${costos}">
+                        <td th:text="${costo.fechaCosto}"></td>
+                        <td><span class="cost-badge" th:text="${costo.categoria}"></span></td>
+                        <td th:text="${costo.concepto}"></td>
+                        <td><strong th:text="'S/ ' + ${#numbers.formatDecimal(costo.monto, 1, 2)}"></strong></td>
+                        <td th:text="${#strings.isEmpty(costo.descripcion) ? '-' : costo.descripcion}"></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(costos)}">
+                        <td colspan="5">Aun no hay costos registrados.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</th:block>
+<th:block th:fragment="scripts">
+</th:block>
+</html>
