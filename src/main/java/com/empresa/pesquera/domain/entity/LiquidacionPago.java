@@ -22,7 +22,7 @@ public class LiquidacionPago {
     private Double kilosProcesados;
 
     @Column(nullable = false)
-    private Double tarifaPorKilo; // Registro histórico del pago
+    private Double tarifaPorKilo; 
 
     @Column(nullable = false)
     private Double montoTotal;

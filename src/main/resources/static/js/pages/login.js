@@ -1,8 +1,5 @@
 "use strict";
 
-/**
- * Muestra un mensaje de error o estado en el login.
- */
 function mostrarMensajeLogin(mensaje, esError = true) {
     const status = document.getElementById("loginStatus");
     const error = document.getElementById("loginError");
@@ -18,9 +15,6 @@ function mostrarMensajeLogin(mensaje, esError = true) {
     target.classList.toggle("alert-success", !esError);
 }
 
-/**
- * Ejecuta el login JWT contra el backend y gestiona validación, persistencia y navegación.
- */
 async function iniciarSesionJwt(event) {
     event.preventDefault();
 
