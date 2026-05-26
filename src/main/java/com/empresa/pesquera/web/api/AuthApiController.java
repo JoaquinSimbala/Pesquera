@@ -52,7 +52,7 @@ public class AuthApiController {
                     .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
             String token = jwtService.generarToken(usuario, authentication.getAuthorities());
-                ResponseCookie cookieJwt = jwtCookieService.crearCookieJwt(token, jwtService.extraerExpiracion(token));
+            ResponseCookie cookieJwt = jwtCookieService.crearCookieJwt(token, jwtService.extraerExpiracion(token));
             JwtAuthResponse response = new JwtAuthResponse(
                     "Bearer",
                     usuario.getUsername(),

@@ -26,8 +26,8 @@ public class SecurityConfig {
         httpSecurity.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/","/login", "/css/**", "/js/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/supervisor/**", "/gerente/**", "/liquidacion/**", "/asignacion/**")
-                .hasAnyAuthority("SUPERVISOR", "ROLE_SUPERVISOR", "GERENTE", "ROLE_GERENTE")
+                .requestMatchers("/supervisor/**").hasRole("SUPERVISOR")
+                .requestMatchers("/gerente/**").hasRole("GERENTE")
                 .anyRequest().authenticated()
         );
 
