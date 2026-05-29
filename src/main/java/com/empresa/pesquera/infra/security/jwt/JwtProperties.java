@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class JwtProperties {
 
     private String secret;
-    private long expirationMs;
+    private long expirationMs=3600000;
     private String cookieName = "pesquera_jwt";
     private boolean cookieSecure = false;
     private String cookieSameSite = "Strict";

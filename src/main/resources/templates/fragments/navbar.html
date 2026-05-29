@@ -2,32 +2,32 @@
     <div class="nav-brand">PESQUERA - GESTION</div>
     <ul class="nav-links">
         <li>
-            <a th:href="@{/gerente}" th:classappend="${modulo == 'carga' ? 'active' : ''}">
+            <a th:href="@{/gerente}" th:classappend="${modulo == 'carga' ? 'active' : ''}" class="role-gerente">
                 Modulo 1: Analisis de Carga
             </a>
         </li>
         <li>
-            <a th:href="@{/gerente/asignacion}" th:classappend="${modulo == 'asignacion' ? 'active' : ''}">
+            <a th:href="@{/gerente/asignacion}" th:classappend="${modulo == 'asignacion' ? 'active' : ''}" class="role-gerente">
                 Modulo 2: Asignacion de Personal
             </a>
         </li>
         <li>
-            <a th:href="@{/gerente/liquidaciones}" th:classappend="${modulo == 'liquidacion' ? 'active' : ''}">
+            <a th:href="@{/gerente/liquidaciones}" th:classappend="${modulo == 'liquidacion' ? 'active' : ''}" class="role-gerente">
                 Modulo 3: Liquidacion y Pagos
             </a>
         </li>
         <li>
-            <a th:href="@{/gerente/costos}" th:classappend="${modulo == 'costos' ? 'active' : ''}">
+            <a th:href="@{/gerente/costos}" th:classappend="${modulo == 'costos' ? 'active' : ''}" class="role-gerente">
                 Modulo 4: Costos Operacionales
             </a>
         </li>
         <li>
-            <a th:href="@{/supervisor}" th:classappend="${modulo == 'inventario' ? 'active' : ''}">
+            <a th:href="@{/supervisor}" th:classappend="${modulo == 'inventario' ? 'active' : ''}" class="role-supervisor">
                 Modulo 5: Inventario y Distribución
             </a>
         </li>
         <li>
-            <a th:href="@{/supervisor/calidad}" th:classappend="${modulo == 'calidad' ? 'active' : ''}">
+            <a th:href="@{/supervisor/calidad}" th:classappend="${modulo == 'calidad' ? 'active' : ''}" class="role-supervisor">
                 Modulo 6: Control de Calidad
             </a>
         </li>
@@ -36,4 +36,5 @@
         <span id="navUserLabel">Usuario Corporativo</span>
         <button type="button" id="btnLogout" class="btn-logout">Salir</button>
     </div>
+    <script th:src="@{/js/common/navbar-role.js}" defer></script>
 </nav>

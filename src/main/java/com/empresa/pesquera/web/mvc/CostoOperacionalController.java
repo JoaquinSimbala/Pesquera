@@ -33,9 +33,9 @@ public class CostoOperacionalController {
 
     @PostMapping("/registrar")
     public String registrarCosto(@Valid @ModelAttribute("costoForm") RegistroCostoForm form,
-                                 BindingResult result,
-                                 Model model,
-                                 RedirectAttributes redirectAttributes) {
+                                BindingResult result,
+                                Model model,
+                                RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             cargarDatosVista(model);
             return "pages/panel-costos";

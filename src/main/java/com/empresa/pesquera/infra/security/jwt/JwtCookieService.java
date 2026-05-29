@@ -22,9 +22,9 @@ public class JwtCookieService {
 
         return ResponseCookie.from(jwtProperties.getCookieName(), token)
                 .httpOnly(true)
-            .secure(jwtProperties.isCookieSecure())
-            .sameSite(jwtProperties.getCookieSameSite())
-            .path(jwtProperties.getCookiePath())
+                .secure(jwtProperties.isCookieSecure())
+                .sameSite(jwtProperties.getCookieSameSite())
+                .path(jwtProperties.getCookiePath())
                 .maxAge(maxAgeSeconds)
                 .build();
     }
@@ -32,9 +32,9 @@ public class JwtCookieService {
     public ResponseCookie eliminarCookieJwt() {
         return ResponseCookie.from(jwtProperties.getCookieName(), "")
                 .httpOnly(true)
-            .secure(jwtProperties.isCookieSecure())
-            .sameSite(jwtProperties.getCookieSameSite())
-            .path(jwtProperties.getCookiePath())
+                .secure(jwtProperties.isCookieSecure())
+                .sameSite(jwtProperties.getCookieSameSite())
+                .path(jwtProperties.getCookiePath())
                 .maxAge(0)
                 .build();
     }

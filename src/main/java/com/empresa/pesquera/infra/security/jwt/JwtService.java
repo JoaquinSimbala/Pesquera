@@ -43,7 +43,7 @@ public class JwtService {
                 .claim(ROLE_CLAIM, rol)
                 .issuedAt(Date.from(issuedAt))
                 .expiration(Date.from(expiration))
-            .signWith(secretKey)
+                .signWith(secretKey)
                 .compact();
     }
 
