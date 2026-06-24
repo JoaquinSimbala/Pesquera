@@ -33,9 +33,9 @@ public class AuthApiController {
     private final JwtCookieService jwtCookieService;
 
     public AuthApiController(AuthenticationManager authenticationManager,
-                             UsuarioRepository usuarioRepository,
-                             JwtService jwtService,
-                             JwtCookieService jwtCookieService) {
+            UsuarioRepository usuarioRepository,
+            JwtService jwtService,
+            JwtCookieService jwtCookieService) {
         this.authenticationManager = authenticationManager;
         this.usuarioRepository = usuarioRepository;
         this.jwtService = jwtService;
@@ -59,7 +59,7 @@ public class AuthApiController {
                     usuario.getRol(),
                     jwtService.extraerExpiracion(token));
 
-                return ResponseEntity.status(HttpStatus.OK)
+            return ResponseEntity.status(HttpStatus.OK)
                     .header("Set-Cookie", cookieJwt.toString())
                     .body(response);
         } catch (AuthenticationException ex) {

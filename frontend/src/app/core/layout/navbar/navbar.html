@@ -1,0 +1,26 @@
+<nav class="navbar">
+  <div class="navbar-brand">
+    <img src="logoPesquera.svg" alt="Logo" class="logo" />
+    <h1>PESQUERA - GESTION</h1>
+  </div>
+
+  <ul class="nav-links" *ngIf="user().isAuthenticated">
+
+    <ng-container *ngIf="user().role === 'GERENTE'">
+      <li><a routerLink="/panel/gerente" routerLinkActive="active">Analisis de Carga</a></li>
+      <li><a routerLink="/panel/asignacion" routerLinkActive="active">Asignacion de Personal</a></li>
+      <li><a routerLink="/panel/liquidaciones" routerLinkActive="active">Liquidacion y Pagos</a></li>
+      <li><a routerLink="/panel/costos" routerLinkActive="active">Costos Operacionales</a></li>
+    </ng-container>
+
+    <ng-container *ngIf="user().role === 'SUPERVISOR'">
+      <li><a routerLink="/panel/supervisor" routerLinkActive="active">Inventario y Distribución</a></li>
+      <li><a routerLink="/panel/calidad" routerLinkActive="active">Control de Calidad</a></li>
+    </ng-container>
+  </ul>
+
+  <div class="navbar-user" *ngIf="user().isAuthenticated">
+    <span class="username">{{ user().username }} ({{ user().role }})</span>
+    <button (click)="logout()" class="btn-logout">Salir</button>
+  </div>
+</nav>
