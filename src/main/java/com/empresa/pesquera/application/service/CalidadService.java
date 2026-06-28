@@ -35,19 +35,16 @@ public class CalidadService {
     }
 
     public List<ControlCalidad> listarHistorial() {
-        return repository.findAllByOrderByFechaRegistroDesc();
+        return repository.findTop50ByOrderByFechaRegistroDesc();
     }
 
     public Map<String, Object> obtenerResumenMetricas() {
-        List<ControlCalidad> todos = repository.findAll();
-        long total = todos.size();
-        long aprobados = todos.stream().filter(c -> "APROBADO".equalsIgnoreCase(c.getEstadoHaccp())).count();
-        long rechazados = todos.stream().filter(c -> "RECHAZADO".equalsIgnoreCase(c.getEstadoHaccp())).count();
-        long observados = todos.stream().filter(c -> "CON OBSERVACIONES".equalsIgnoreCase(c.getEstadoHaccp())).count();
+        long total = repository.count();
+        long aprobados = repository.countByEstadoHaccpIgnoreCase("APROBADO");
+        long rechazados = repository.countByEstadoHaccpIgnoreCase("RECHAZADO");
+        long observados = repository.countByEstadoHaccpIgnoreCase("CON OBSERVACIONES");
 
-        long alertasCriticas = todos.stream()
-                .filter(c -> c.getTemperatura() > 4.5 || c.getPh() < 6.0 || c.getPh() > 7.0)
-                .count();
+        long alertasCriticas = repository.countAlertasCriticas();
 
         double aprobadosPct = total > 0 ? ((double) aprobados / total) * 100.0 : 0.0;
 

@@ -8,6 +8,7 @@ import com.empresa.pesquera.infra.persistence.TrabajadorRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class AsignacionService {
@@ -67,13 +68,25 @@ public class AsignacionService {
     private ResultadoRol asignarRol(String rol, double tasaRequerida) {
         List<Trabajador> disponibles = trabajadorRepository.findByRolOperativoAndDisponibleTrue(rol);
 
+        if (disponibles.isEmpty()) {
+            return new ResultadoRol(new ArrayList<>(), 0);
+        }
+
+        List<Long> trabajadorIds = disponibles.stream().map(Trabajador::getId).toList();
+
+        List<RendimientoDiario> historiales = rendimientoRepository.findTop10PerTrabajador(trabajadorIds);
+
+        Map<Long, List<RendimientoDiario>> agrupados = historiales.stream()
+                .collect(Collectors.groupingBy(r -> r.getTrabajador().getId()));
+
         List<TrabajadorConRendimiento> candidatos = new ArrayList<>();
         for (Trabajador t : disponibles) {
-            double promedio = calcularPromedioUltimos10Dias(t);
+            List<RendimientoDiario> top10 = agrupados.getOrDefault(t.getId(), new ArrayList<>());
+            double promedio = calcularPromedioDesdeLista(t, top10);
             candidatos.add(new TrabajadorConRendimiento(t, promedio));
         }
 
-        candidatos.sort((a, b) -> Double.compare(b.rendimiento, a.rendimiento));
+        Collections.shuffle(candidatos);
 
         List<TrabajadorConRendimiento> asignados = new ArrayList<>();
         double sumaCapacidad = 0;
@@ -91,7 +104,10 @@ public class AsignacionService {
 
     public double calcularPromedioUltimos10Dias(Trabajador trabajador) {
         List<RendimientoDiario> historial = rendimientoRepository.findTop10ByTrabajadorOrderByFechaDesc(trabajador);
+        return calcularPromedioDesdeLista(trabajador, historial);
+    }
 
+    public double calcularPromedioDesdeLista(Trabajador trabajador, List<RendimientoDiario> historial) {
         if (historial.isEmpty()) {
             return VALORES_GENERICOS.getOrDefault(trabajador.getRolOperativo(), 30.0);
         }
