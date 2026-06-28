@@ -1,0 +1,76 @@
+<div class="container">
+  <h2 class="panel-title">Simulador de Personal: Planta de Pulpo</h2>
+
+  <section class="panel-section">
+    <h3 class="section-title">Ingreso de datos operativos</h3>
+
+    <form [formGroup]="calculoForm" (ngSubmit)="calcularRequerimiento()" class="grid">
+
+      <div class="form-group">
+        <label for="kilos">Kilos Recibidos:</label>
+        <input id="kilos" type="number" formControlName="kilos" placeholder="Ej: 5000">
+
+        <div *ngIf="calculoForm.get('kilos')?.touched && calculoForm.get('kilos')?.invalid" class="field-error">
+          <span *ngIf="calculoForm.get('kilos')?.hasError('required')">Los kilos son obligatorios.</span>
+          <span *ngIf="calculoForm.get('kilos')?.hasError('min')">Debe ser mayor a 0.</span>
+          <span *ngIf="calculoForm.get('kilos')?.hasError('max')">Supera la capacidad permitida.</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="tiempoObjetivo">Tiempo Objetivo (Horas):</label>
+        <input id="tiempoObjetivo" type="number" formControlName="tiempoObjetivo" placeholder="Ej: 8">
+
+        <div *ngIf="calculoForm.get('tiempoObjetivo')?.touched && calculoForm.get('tiempoObjetivo')?.invalid"
+             class="field-error">
+          <span *ngIf="calculoForm.get('tiempoObjetivo')?.hasError('required')">El tiempo es obligatorio.</span>
+          <span *ngIf="calculoForm.get('tiempoObjetivo')?.hasError('min')">Mínimo 1 hora permitida.</span>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-calc" [disabled]="calculoForm.invalid">
+        Calcular Requerimiento
+      </button>
+    </form>
+  </section>
+
+  <section *ngIf="calculado && resultado" class="panel-section">
+    <h3 class="section-title">Comparativa de Capacidad Operativa</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <caption>Comparación de personal necesario vs disponible por rol</caption>
+        <thead>
+        <tr>
+          <th>Rol de Personal</th>
+          <th>Necesarios</th>
+          <th>Disponibles (DB)</th>
+          <th>Estado</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let rol of resultado.necesarios | keyvalue"
+            [class.alert-row]="rol.value > resultado.disponibles[rol.key]">
+          <th>{{ rol.key }}</th>
+          <td>{{ rol.value }}</td>
+          <td>{{ resultado.disponibles[rol.key] }}</td>
+          <td>
+            <span *ngIf="rol.value > resultado.disponibles[rol.key]" class="status-warn">Insuficiente</span>
+            <span *ngIf="rol.value <= resultado.disponibles[rol.key]" class="status-ok">Cubierto</span>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info-box">
+      <p><strong>Nota:</strong> El cálculo considera automáticamente 1 hora de improductividad promedio.</p>
+    </div>
+
+    <div class="action-box">
+      <button (click)="generarAsignacion()" class="btn-calc btn-success">
+        Generar Asignación Automática (Módulo 2)
+      </button>
+    </div>
+  </section>
+</div> 

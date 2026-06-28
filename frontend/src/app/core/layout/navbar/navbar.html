@@ -7,7 +7,7 @@
   <ul class="nav-links" *ngIf="user().isAuthenticated">
 
     <ng-container *ngIf="user().role === 'GERENTE'">
-      <li><a routerLink="/panel/gerente" routerLinkActive="active">Analisis de Carga</a></li>
+      <li><a routerLink="/panel/carga" routerLinkActive="active">Modulo 1: Analisis de Carga</a></li>
       <li><a routerLink="/panel/asignacion" routerLinkActive="active">Asignacion de Personal</a></li>
       <li><a routerLink="/panel/liquidaciones" routerLinkActive="active">Liquidacion y Pagos</a></li>
       <li><a routerLink="/panel/costos" routerLinkActive="active">Costos Operacionales</a></li>

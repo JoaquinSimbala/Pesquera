@@ -36,6 +36,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/asignacion/**").hasAnyRole("SUPERVISOR", "GERENTE")
                 .requestMatchers("/api/calidad/**").hasAnyRole("SUPERVISOR", "GERENTE")
+                .requestMatchers("/api/gerente/**").hasRole("GERENTE")
                 .requestMatchers("/supervisor/**").hasRole("SUPERVISOR")
                 .requestMatchers("/gerente/**").hasRole("GERENTE")
                 .anyRequest().authenticated());
