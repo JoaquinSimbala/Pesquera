@@ -38,6 +38,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/calidad/**").hasAnyRole("SUPERVISOR", "GERENTE")
                 .requestMatchers("/api/liquidaciones/**").hasRole("GERENTE")
                 .requestMatchers("/api/costos/**").hasRole("GERENTE")
+                .requestMatchers("/api/gerente/**").hasRole("GERENTE")
                 .requestMatchers("/supervisor/**").hasRole("SUPERVISOR")
                 .requestMatchers("/gerente/**").hasRole("GERENTE")
                 .anyRequest().authenticated());
