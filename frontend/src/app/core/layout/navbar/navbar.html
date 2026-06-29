@@ -1,6 +1,6 @@
 <nav class="navbar">
   <div class="navbar-brand">
-    <img src="logoPesquera.svg" alt="Logo" class="logo" />
+    <img src="logoPesquera.svg" alt="Logo" class="logo"/>
     <h1>PESQUERA - GESTION</h1>
   </div>
 
@@ -11,6 +11,7 @@
       <li><a routerLink="/panel/asignacion" routerLinkActive="active">Asignacion de Personal</a></li>
       <li><a routerLink="/panel/liquidaciones" routerLinkActive="active">Liquidacion y Pagos</a></li>
       <li><a routerLink="/panel/costos" routerLinkActive="active">Costos Operacionales</a></li>
+      <li><a routerLink="/panel/inventario" routerLinkActive="active">Inventario</a></li>
     </ng-container>
 
     <ng-container *ngIf="user().role === 'SUPERVISOR'">

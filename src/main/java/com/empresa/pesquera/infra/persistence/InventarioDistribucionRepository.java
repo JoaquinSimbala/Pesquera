@@ -12,6 +12,12 @@ public interface InventarioDistribucionRepository extends JpaRepository<Inventar
 
     List<InventarioDistribucion> findAllByOrderByFechaRegistroDesc();
 
-    @Query("SELECT COALESCE(SUM(i.kilosTotales), 0) FROM InventarioDistribucion i WHERE i.destino = :destino AND i.fechaRegistro >= :fechaInicio")
-    Double sumarKilosPorDestinoYFecha(@Param("destino") String destino, @Param("fechaInicio") LocalDate fechaInicio);
+    @Query("SELECT COALESCE(SUM(i.kilosTotales), 0) FROM InventarioDistribucion i WHERE i.destino = :destino AND i.fechaRegistro >= :fecha")
+    Double sumarKilosPorDestinoYFecha(@Param("destino") String destino, @Param("fecha") LocalDate fecha);
+
+    @Query("SELECT DISTINCT i.destino FROM InventarioDistribucion i")
+    List<String> findDistinctDestinos();
+
+    @Query("SELECT COALESCE(SUM(i.kilosTotales), 0) FROM InventarioDistribucion i WHERE i.loteReferencia = :lote")
+    Double sumarKilosPorLote(@Param("lote") String lote);
 }

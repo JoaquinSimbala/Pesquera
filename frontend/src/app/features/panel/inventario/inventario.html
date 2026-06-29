@@ -1,0 +1,96 @@
+<div class="container">
+  <h2 class="panel-title">Módulo 5: Inventario y Distribución</h2>
+
+  <section class="panel-section">
+    <h3 class="section-title">Registrar Nueva Distribución</h3>
+
+    <div *ngIf="mensajeExito()" class="alert-success">
+      Registro guardado exitosamente en el sistema.
+    </div>
+
+    <div *ngIf="mensajeError()" class="alert-error">
+      {{ mensajeError() }}
+    </div>
+
+    <form [formGroup]="inventarioForm" (ngSubmit)="registrarDistribucion()" class="grid">
+
+      <div class="form-group">
+        <label for="loteReferencia">Lote de Producción:</label>
+        <select id="loteReferencia" formControlName="loteReferencia">
+          <option value="" disabled selected>Seleccione un Lote (Stock)</option>
+          <option *ngFor="let lote of lotesDisponibles() | keyvalue" [value]="lote.key">
+            {{ lote.key }} (Disp: {{ lote.value }} kg)
+          </option>
+        </select>
+
+        <div *ngIf="inventarioForm.get('loteReferencia')?.touched && inventarioForm.get('loteReferencia')?.invalid" class="field-error">
+          <span *ngIf="inventarioForm.get('loteReferencia')?.hasError('required')">Debe seleccionar un lote.</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="kilosTotales">Kilos a Distribuir:</label>
+        <input id="kilosTotales" type="number" formControlName="kilosTotales" step="0.1" placeholder="Ej: 500.5">
+
+        <div *ngIf="inventarioForm.get('kilosTotales')?.touched && inventarioForm.get('kilosTotales')?.invalid" class="field-error">
+          <span *ngIf="inventarioForm.get('kilosTotales')?.hasError('required')">Los kilos son obligatorios.</span>
+          <span *ngIf="inventarioForm.get('kilosTotales')?.hasError('min')">Debe registrar al menos 0.1 kg.</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="destino">Destino Final:</label>
+        <select id="destino" formControlName="destino">
+          <option value="" disabled selected>Seleccione un destino</option>
+          <option *ngFor="let dest of destinosDisponibles()" [value]="dest">{{ dest }}</option>
+        </select>
+
+        <div *ngIf="inventarioForm.get('destino')?.touched && inventarioForm.get('destino')?.invalid" class="field-error">
+          <span *ngIf="inventarioForm.get('destino')?.hasError('required')">Debe seleccionar un destino.</span>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-calc" [disabled]="inventarioForm.invalid">
+        Confirmar Registro
+      </button>
+    </form>
+  </section>
+
+  <section class="panel-section dashboard-grid" *ngIf="metricas()">
+    <div class="metrics-card" *ngFor="let metrica of metricas() | keyvalue">
+      <h4>{{ metrica.key }}</h4>
+      <p class="metric-value">{{ metrica.value || 0 }} kg</p>
+      <span class="metric-label">Último mes</span>
+    </div>
+  </section>
+
+  <section class="panel-section">
+    <h3 class="section-title">Historial de Salidas</h3>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Fecha</th>
+          <th>Lote Referencia</th>
+          <th>Destino</th>
+          <th>Kilos Totales</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let item of historial()">
+          <td>#{{ item.id }}</td>
+          <td>{{ item.fechaRegistro }}</td>
+          <th>{{ item.loteReferencia }}</th>
+          <td>{{ item.destino }}</td>
+          <td><strong>{{ item.kilosTotales }} kg</strong></td>
+        </tr>
+        <tr *ngIf="historial().length === 0">
+          <td colspan="5">No hay registros de inventario disponibles.</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
