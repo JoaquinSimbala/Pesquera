@@ -71,6 +71,24 @@ public class LiquidacionService {
         }
     }
 
+    // Registra una sola liquidación desde el formulario manual de Angular.
+    // La tarifa se calcula automáticamente según el rol del trabajador.
+    @Transactional
+    public void registrarUnaLiquidacion(Long trabajadorId, Double kilosProcesados) {
+        Map<String, Double> tarifas = tarifasOficiales();
+        Trabajador t = trabajadorRepository.findById(trabajadorId).orElseThrow();
+        double tarifa = tarifas.getOrDefault(t.getRolOperativo(), 1.0);
+        LiquidacionPago pago = new LiquidacionPago();
+        pago.setTrabajador(t);
+        pago.setKilosProcesados(kilosProcesados);
+        pago.setTarifaPorKilo(tarifa);
+        pago.setMontoTotal(redondear(kilosProcesados * tarifa));
+        pago.setFechaProduccion(LocalDate.now());
+        pago.setAprobado(false);
+        pago.setFechaRegistro(LocalDateTime.now());
+        liquidacionPagoRepository.save(pago);
+    }
+
     @Transactional
     public void aprobarLiquidacion(Long id) {
         LiquidacionPago p = liquidacionPagoRepository.findById(id).orElseThrow();
