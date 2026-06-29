@@ -18,20 +18,17 @@ import {
 })
 export class Costos implements OnInit {
 
-  // ─── Datos del backend ──────────────────────────────────────────────────────
   costos: Costo[] = [];
   resumen: ResumenCostos | null = null;
   categorias: string[] = [];
 
-  // ─── Estado del formulario de registro ─────────────────────────────────────
   mostrarFormulario = false;
   formCategoria = '';
   formConcepto = '';
   formMonto: number | null = null;
-  formFecha = new Date().toISOString().split('T')[0]; // Fecha de hoy como valor inicial
+  formFecha = '';
   formDescripcion = '';
 
-  // ─── Estado de la pantalla ──────────────────────────────────────────────────
   cargando = false;
   mensaje = '';
   tipoMensaje: 'exito' | 'error' | '' = '';
@@ -39,14 +36,19 @@ export class Costos implements OnInit {
   constructor(
     private costosService: CostosService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    // Inicializamos la fecha aquí para que sea seguro
+    const hoy = new Date();
+    const anio = hoy.getFullYear();
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoy.getDate()).padStart(2, '0');
+    this.formFecha = `${anio}-${mes}-${dia}`;
+  }
 
-  // Se ejecuta automáticamente al abrir la pantalla
   ngOnInit(): void {
     this.cargarDatos();
   }
 
-  // Pide al backend todos los datos del módulo en una sola llamada
   cargarDatos(): void {
     this.cargando = true;
     this.costosService.obtenerDatos().subscribe({
@@ -55,16 +57,16 @@ export class Costos implements OnInit {
         this.resumen = datos.resumen;
         this.categorias = datos.categorias;
         this.cargando = false;
+        this.cdr.detectChanges();
       },
-      error: () => {
-        this.mostrarMensaje('Error al cargar los datos. Verifica la conexión.', 'error');
+      error: (err) => {
+        console.error('Error cargando costos:', err);
         this.cargando = false;
+        this.mostrarMensaje('Error al cargar los datos. Verifica la conexión.', 'error');
       },
     });
   }
 
-  // Convierte el objeto { Insumos: 500, Servicios: 200 } en un array para poder
-  // usarlo con *ngFor en el HTML: [{ nombre: 'Insumos', monto: 500 }, ...]
   get categoriasResumen(): { nombre: string; monto: number }[] {
     if (!this.resumen) return [];
     return Object.entries(this.resumen.porCategoria).map(([nombre, monto]) => ({
@@ -72,8 +74,6 @@ export class Costos implements OnInit {
       monto,
     }));
   }
-
-  // ─── Acciones ───────────────────────────────────────────────────────────────
 
   registrar(): void {
     if (!this.formCategoria || !this.formConcepto || !this.formMonto || this.formMonto <= 0) {
@@ -91,37 +91,33 @@ export class Costos implements OnInit {
 
     this.costosService.registrar(nuevoCosto).subscribe({
       next: () => {
-        this.mostrarMensaje('Costo registrado correctamente.', 'exito');
         this.resetFormulario();
-        this.cargarDatos(); // Recarga la tabla para mostrar el nuevo registro
+        this.mostrarMensaje('Costo registrado correctamente.', 'exito');
+        this.cargarDatos();
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error registrando costo:', err);
         this.mostrarMensaje('Error al registrar el costo.', 'error');
       },
     });
   }
 
-  // Limpia los campos del formulario y lo oculta
   resetFormulario(): void {
     this.formCategoria = '';
     this.formConcepto = '';
     this.formMonto = null;
-    this.formFecha = new Date().toISOString().split('T')[0];
     this.formDescripcion = '';
     this.mostrarFormulario = false;
   }
 
-  // Muestra un mensaje temporal que desaparece solo después de 4 segundos.
-  // Se llama a cdr.markForCheck() porque el app usa modo zoneless y setTimeout
-  // no dispara la detección de cambios automáticamente.
   mostrarMensaje(texto: string, tipo: 'exito' | 'error'): void {
     this.mensaje = texto;
     this.tipoMensaje = tipo;
-    this.cdr.markForCheck();
+    this.cdr.detectChanges();
     setTimeout(() => {
       this.mensaje = '';
       this.tipoMensaje = '';
-      this.cdr.markForCheck();
+      this.cdr.detectChanges();
     }, 4000);
   }
 }

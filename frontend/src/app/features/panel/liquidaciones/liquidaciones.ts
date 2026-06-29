@@ -18,20 +18,17 @@ import {
 })
 export class Liquidaciones implements OnInit {
 
-  // ─── Datos del backend ──────────────────────────────────────────────────────
   liquidaciones: Liquidacion[] = [];
   resumen: ResumenLiquidacion | null = null;
   trabajadoresPorRol: { [rol: string]: Trabajador[] } = {};
   tarifas: { [rol: string]: number } = {};
   roles: string[] = ['Apoyos', 'Limpieza', 'Clasificado', 'Envasado'];
 
-  // ─── Estado del formulario de registro manual ───────────────────────────────
   mostrarFormulario = false;
   rolSeleccionado = '';
   trabajadorSeleccionado: number | null = null;
   kilosProcesados: number | null = null;
 
-  // ─── Estado de la pantalla ──────────────────────────────────────────────────
   cargando = false;
   mensaje = '';
   tipoMensaje: 'exito' | 'error' | '' = '';
@@ -41,12 +38,10 @@ export class Liquidaciones implements OnInit {
     private cdr: ChangeDetectorRef
   ) {}
 
-  // Se ejecuta automáticamente al abrir la pantalla
   ngOnInit(): void {
     this.cargarDatos();
   }
 
-  // Pide al backend todos los datos del módulo en una sola llamada
   cargarDatos(): void {
     this.cargando = true;
     this.liquidacionService.obtenerDatos().subscribe({
@@ -56,47 +51,42 @@ export class Liquidaciones implements OnInit {
         this.trabajadoresPorRol = datos.trabajadoresPorRol;
         this.tarifas = datos.tarifas;
         this.cargando = false;
+        this.cdr.detectChanges();
       },
-      error: () => {
-        this.mostrarMensaje('Error al cargar los datos. Verifica la conexión.', 'error');
+      error: (err) => {
+        console.error('Error cargando liquidaciones:', err);
         this.cargando = false;
+        this.mostrarMensaje('Error al cargar los datos. Verifica la conexión.', 'error');
       },
     });
   }
 
-  // ─── Getters para el formulario (se recalculan automáticamente) ─────────────
-
-  // Retorna los trabajadores disponibles según el rol elegido en el select
   get trabajadoresDelRol(): Trabajador[] {
     return this.trabajadoresPorRol[this.rolSeleccionado] || [];
   }
 
-  // Retorna la tarifa por kilo según el rol seleccionado
   get tarifaDelRol(): number {
     return this.tarifas[this.rolSeleccionado] || 0;
   }
 
-  // Calcula el monto estimado en tiempo real mientras el usuario escribe los kilos
   get montoEstimado(): number {
     if (!this.kilosProcesados || !this.rolSeleccionado) return 0;
     return this.kilosProcesados * this.tarifaDelRol;
   }
-
-  // ─── Acciones ───────────────────────────────────────────────────────────────
 
   registrar(): void {
     if (!this.trabajadorSeleccionado || !this.kilosProcesados || this.kilosProcesados <= 0) {
       this.mostrarMensaje('Selecciona un trabajador e ingresa los kilos procesados.', 'error');
       return;
     }
-
     this.liquidacionService.registrar(this.trabajadorSeleccionado, this.kilosProcesados).subscribe({
       next: () => {
-        this.mostrarMensaje('Liquidación registrada correctamente.', 'exito');
         this.resetFormulario();
-        this.cargarDatos(); // Recarga la tabla para mostrar el nuevo registro
+        this.mostrarMensaje('Liquidación registrada correctamente.', 'exito');
+        this.cargarDatos();
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error registrando liquidación:', err);
         this.mostrarMensaje('Error al registrar la liquidación.', 'error');
       },
     });
@@ -106,15 +96,15 @@ export class Liquidaciones implements OnInit {
     this.liquidacionService.aprobar(id).subscribe({
       next: () => {
         this.mostrarMensaje('Pago aprobado correctamente.', 'exito');
-        this.cargarDatos(); // Recarga para reflejar el cambio de estado en la fila
+        this.cargarDatos();
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error aprobando liquidación:', err);
         this.mostrarMensaje('Error al aprobar el pago.', 'error');
       },
     });
   }
 
-  // Limpia los campos del formulario y lo oculta
   resetFormulario(): void {
     this.rolSeleccionado = '';
     this.trabajadorSeleccionado = null;
@@ -122,17 +112,14 @@ export class Liquidaciones implements OnInit {
     this.mostrarFormulario = false;
   }
 
-  // Muestra un mensaje temporal que desaparece solo después de 4 segundos.
-  // Se llama a cdr.markForCheck() porque el app usa modo zoneless y setTimeout
-  // no dispara la detección de cambios automáticamente.
   mostrarMensaje(texto: string, tipo: 'exito' | 'error'): void {
     this.mensaje = texto;
     this.tipoMensaje = tipo;
-    this.cdr.markForCheck();
+    this.cdr.detectChanges();
     setTimeout(() => {
       this.mensaje = '';
       this.tipoMensaje = '';
-      this.cdr.markForCheck();
+      this.cdr.detectChanges();
     }, 4000);
   }
 }

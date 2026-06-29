@@ -35,7 +35,7 @@ export class LoginComponent {
     this.authService.login(this.loginForm.value).subscribe({
       next: (response) => {
         if (response.rol === 'GERENTE') {
-          this.router.navigate(['/panel/gerente']);
+          this.router.navigate(['/panel/carga']);
         } else if (response.rol === 'SUPERVISOR') {
           this.router.navigate(['/panel/supervisor']);
         } else {

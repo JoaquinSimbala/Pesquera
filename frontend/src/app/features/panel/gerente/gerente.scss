@@ -1,0 +1,72 @@
+.dashboard {
+  padding: 1.5rem 2rem;
+  max-width: 900px;
+}
+
+.dashboard-header {
+  margin-bottom: 2rem;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a56b0;
+    margin: 0 0 0.25rem;
+  }
+
+  p {
+    color: #6b7280;
+    margin: 0;
+    font-size: 0.95rem;
+  }
+}
+
+.modulos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.modulo-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.1rem;
+  padding: 1.4rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+
+  &:hover {
+    border-color: #1a56b0;
+    box-shadow: 0 4px 12px rgba(26, 86, 176, 0.12);
+    transform: translateY(-2px);
+  }
+}
+
+.modulo-numero {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #1a56b0;
+  opacity: 0.3;
+  min-width: 2.5rem;
+  line-height: 1;
+}
+
+.modulo-info {
+  h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 0.35rem;
+  }
+
+  p {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.5;
+  }
+}
