@@ -29,7 +29,7 @@ export class Liquidaciones implements OnInit {
   trabajadorSeleccionado: number | null = null;
   kilosProcesados: number | null = null;
 
-  cargando = false;
+  cargando = true;
   mensaje = '';
   tipoMensaje: 'exito' | 'error' | '' = '';
 

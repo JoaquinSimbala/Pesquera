@@ -13,8 +13,6 @@ import java.util.List;
 public interface RendimientoDiarioRepository extends JpaRepository<RendimientoDiario, Long> {
     List<RendimientoDiario> findTop10ByTrabajadorOrderByFechaDesc(Trabajador trabajador);
 
-    List<RendimientoDiario> findByTrabajadorInOrderByFechaDesc(List<Trabajador> trabajadores);
-
-    @Query(value = "SELECT * FROM (SELECT r.*, ROW_NUMBER() OVER(PARTITION BY trabajador_id ORDER BY fecha DESC) as rn FROM rendimientos_diarios r WHERE trabajador_id IN :trabajadorIds) as sub WHERE rn <= 10", nativeQuery = true)
-    List<RendimientoDiario> findTop10PerTrabajador(@Param("trabajadorIds") List<Long> trabajadorIds);
+    @Query("SELECT r FROM RendimientoDiario r JOIN FETCH r.trabajador WHERE r.trabajador.id IN :ids ORDER BY r.fecha DESC")
+    List<RendimientoDiario> findByTrabajadorIdsWithJoin(@Param("ids") List<Long> ids);
 }

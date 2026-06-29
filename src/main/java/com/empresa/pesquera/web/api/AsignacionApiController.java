@@ -32,6 +32,7 @@ public class AsignacionApiController {
         resultado.getAsignaciones().forEach((rol, lista) -> {
             List<AsignacionResponseDto.TrabajadorAsignadoDto> dtos = lista.stream()
                     .map(tr -> new AsignacionResponseDto.TrabajadorAsignadoDto(
+                            tr.getTrabajador().getId(),
                             tr.getTrabajador().getNombreCompleto(),
                             tr.getTrabajador().getDni(),
                             tr.getRendimiento()

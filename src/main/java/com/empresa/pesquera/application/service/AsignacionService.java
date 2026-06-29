@@ -74,14 +74,15 @@ public class AsignacionService {
 
         List<Long> trabajadorIds = disponibles.stream().map(Trabajador::getId).toList();
 
-        List<RendimientoDiario> historiales = rendimientoRepository.findTop10PerTrabajador(trabajadorIds);
+        List<RendimientoDiario> historiales = rendimientoRepository.findByTrabajadorIdsWithJoin(trabajadorIds);
 
         Map<Long, List<RendimientoDiario>> agrupados = historiales.stream()
                 .collect(Collectors.groupingBy(r -> r.getTrabajador().getId()));
 
         List<TrabajadorConRendimiento> candidatos = new ArrayList<>();
         for (Trabajador t : disponibles) {
-            List<RendimientoDiario> top10 = agrupados.getOrDefault(t.getId(), new ArrayList<>());
+            List<RendimientoDiario> top10 = agrupados.getOrDefault(t.getId(), new ArrayList<>())
+                    .stream().limit(10).toList();
             double promedio = calcularPromedioDesdeLista(t, top10);
             candidatos.add(new TrabajadorConRendimiento(t, promedio));
         }

@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface TrabajadorAsignado {
+  id: number;
   nombreCompleto: string;
   dni: string;
   rendimiento: number;

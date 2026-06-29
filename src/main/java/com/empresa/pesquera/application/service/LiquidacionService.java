@@ -21,7 +21,8 @@ public class LiquidacionService {
     private final LiquidacionPagoRepository liquidacionPagoRepository;
     private final TrabajadorRepository trabajadorRepository;
 
-    public LiquidacionService(LiquidacionPagoRepository liquidacionPagoRepository, TrabajadorRepository trabajadorRepository) {
+    public LiquidacionService(LiquidacionPagoRepository liquidacionPagoRepository,
+            TrabajadorRepository trabajadorRepository) {
         this.liquidacionPagoRepository = liquidacionPagoRepository;
         this.trabajadorRepository = trabajadorRepository;
     }
@@ -34,12 +35,14 @@ public class LiquidacionService {
         return liquidacionPagoRepository.findAllByOrderByFechaRegistroDesc();
     }
 
-    public PlanLiquidacionForm construirPlanDesdeAsignacion(AsignacionService.AsignacionResultado resultado, CalculoCarga calculo) {
+    public PlanLiquidacionForm construirPlanDesdeAsignacion(AsignacionService.AsignacionResultado resultado,
+            CalculoCarga calculo) {
         PlanLiquidacionForm plan = new PlanLiquidacionForm();
         List<ItemLiquidacionForm> items = new ArrayList<>();
         double horas = calculo.getTiempoObjetivo() != null ? Math.max(0, calculo.getTiempoObjetivo() - 1) : 0;
 
-        for (Map.Entry<String, List<AsignacionService.TrabajadorConRendimiento>> entry : resultado.getAsignaciones().entrySet()) {
+        for (Map.Entry<String, List<AsignacionService.TrabajadorConRendimiento>> entry : resultado.getAsignaciones()
+                .entrySet()) {
             for (AsignacionService.TrabajadorConRendimiento t : entry.getValue()) {
                 ItemLiquidacionForm item = new ItemLiquidacionForm();
                 item.setRolOperativo(entry.getKey());
@@ -66,13 +69,12 @@ public class LiquidacionService {
             pago.setMontoTotal(redondear(item.getKilosProcesados() * tarifa));
             pago.setFechaProduccion(LocalDate.now());
             pago.setAprobado(false);
+            pago.setTipoProceso("PRODUCCION");
             pago.setFechaRegistro(LocalDateTime.now());
             liquidacionPagoRepository.save(pago);
         }
     }
 
-    // Registra una sola liquidación desde el formulario manual de Angular.
-    // La tarifa se calcula automáticamente según el rol del trabajador.
     @Transactional
     public void registrarUnaLiquidacion(Long trabajadorId, Double kilosProcesados) {
         Map<String, Double> tarifas = tarifasOficiales();
@@ -85,6 +87,7 @@ public class LiquidacionService {
         pago.setMontoTotal(redondear(kilosProcesados * tarifa));
         pago.setFechaProduccion(LocalDate.now());
         pago.setAprobado(false);
+        pago.setTipoProceso("PRODUCCION");
         pago.setFechaRegistro(LocalDateTime.now());
         liquidacionPagoRepository.save(pago);
     }
@@ -99,8 +102,10 @@ public class LiquidacionService {
 
     public ResumenLiquidacion construirResumen(List<LiquidacionPago> list) {
         double tot = list.stream().mapToDouble(LiquidacionPago::getMontoTotal).sum();
-        double apr = list.stream().filter(LiquidacionPago::getAprobado).mapToDouble(LiquidacionPago::getMontoTotal).sum();
-        return new ResumenLiquidacion(list.size(), liquidacionPagoRepository.countByAprobadoFalse(), redondear(tot), redondear(apr), redondear(tot - apr));
+        double apr = list.stream().filter(LiquidacionPago::getAprobado).mapToDouble(LiquidacionPago::getMontoTotal)
+                .sum();
+        return new ResumenLiquidacion(list.size(), liquidacionPagoRepository.countByAprobadoFalse(), redondear(tot),
+                redondear(apr), redondear(tot - apr));
     }
 
     private double redondear(double v) {
@@ -112,7 +117,7 @@ public class LiquidacionService {
     }
 
     public Map<String, List<Trabajador>> trabajadoresDisponiblesPorRol() {
-        String[] roles = {"Apoyos", "Limpieza", "Clasificado", "Envasado"};
+        String[] roles = { "Apoyos", "Limpieza", "Clasificado", "Envasado" };
         Map<String, List<Trabajador>> data = new LinkedHashMap<>();
         for (String rol : roles) {
             data.put(rol, trabajadorRepository.findByRolOperativoAndDisponibleTrue(rol));

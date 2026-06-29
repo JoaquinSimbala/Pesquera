@@ -2,8 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-// ─── Tipos de datos que vienen del backend ───────────────────────────────────
-
 export interface Liquidacion {
   id: number;
   trabajadorNombre: string;
@@ -30,15 +28,12 @@ export interface Trabajador {
   dni: string;
 }
 
-// Agrupa todo lo que trae el GET /api/liquidaciones en una sola llamada
 export interface DatosLiquidacion {
   liquidaciones: Liquidacion[];
   resumen: ResumenLiquidacion;
   trabajadoresPorRol: { [rol: string]: Trabajador[] };
   tarifas: { [rol: string]: number };
 }
-
-// ─── Servicio ─────────────────────────────────────────────────────────────────
 
 @Injectable({ providedIn: 'root' })
 export class LiquidacionService {
@@ -47,12 +42,10 @@ export class LiquidacionService {
 
   constructor(private http: HttpClient) {}
 
-  // Carga toda la información del módulo en una sola petición
   obtenerDatos(): Observable<DatosLiquidacion> {
     return this.http.get<DatosLiquidacion>(this.URL_BASE, { withCredentials: true });
   }
 
-  // Registra una nueva liquidación manual con trabajador y kilos
   registrar(trabajadorId: number, kilosProcesados: number): Observable<any> {
     return this.http.post(
       `${this.URL_BASE}/registrar`,
@@ -61,11 +54,18 @@ export class LiquidacionService {
     );
   }
 
-  // Aprueba el pago de una liquidación por su ID
   aprobar(id: number): Observable<any> {
     return this.http.post(
       `${this.URL_BASE}/${id}/aprobar`,
       {},
+      { withCredentials: true }
+    );
+  }
+
+  registrarLote(trabajadores: { trabajadorId: number; kilosProcesados: number }[]): Observable<any> {
+    return this.http.post(
+      `${this.URL_BASE}/registrar-lote`,
+      { trabajadores },
       { withCredentials: true }
     );
   }

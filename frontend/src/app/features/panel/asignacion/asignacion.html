@@ -2,30 +2,25 @@
   <h2>Módulo 02: Asignación de Personal Automática</h2>
   <p class="subtitle">Personal seleccionado y asignado por el sistema según eficiencia para la carga de pesca proyectada.</p>
 
-  <div *ngIf="errorMessage" class="alert-banner">
-    {{ errorMessage }}
-  </div>
+  <div *ngIf="error" class="alert-banner">{{ error }}</div>
 
-  <div *ngIf="esperandoDatos" class="empty-state">
+  <div *ngIf="esperando" class="empty-state">
     <div class="empty-icon"></div>
     <h3>Esperando datos del Módulo 01</h3>
     <p>La tabla se generará automáticamente cuando el Módulo de Análisis de Carga envíe los kilos a procesar y el tiempo estimado.</p>
   </div>
 
-  <div *ngIf="isLoading" class="loading-state">
+  <div *ngIf="cargando && !resultado" class="loading-state">
     <p>Calculando el personal óptimo y extrayendo historial de la base de datos...</p>
   </div>
 
-  <div *ngIf="resultado && !isLoading && !esperandoDatos" class="fade-in">
-
+  <div *ngIf="resultado" class="fade-in">
     <div *ngIf="resultado.deficitPersonal" class="alert-deficit">
       <div class="alert-icon"></div>
       <div class="alert-content">
         <h4>Advertencia de Capacidad Operativa</h4>
         <p>El personal disponible actual <strong>NO es suficiente</strong> para procesar la carga en el tiempo estándar.</p>
-        <p class="recommendation">
-          Se recomienda extender la jornada a <strong>{{ resultado.horasRecomendadas }} horas fijas</strong>.
-        </p>
+        <p>Se recomienda extender la jornada a <strong>{{ resultado.horasRecomendadas }} horas fijas</strong>.</p>
       </div>
     </div>
 
@@ -38,37 +33,35 @@
     </div>
 
     <div class="roles-grid">
-      <div *ngFor="let rol of rolesList" class="role-card">
+      <div *ngFor="let rol of roles" class="role-card">
         <div class="role-header">
           <h4>{{ rol }}</h4>
-          <span class="badge" [class.badge-empty]="!resultado.asignaciones[rol] || resultado.asignaciones[rol].length === 0">
-            {{ resultado.asignaciones[rol] ? resultado.asignaciones[rol].length : 0 }} Asignados
+          <span class="badge" [class.badge-empty]="!resultado.asignaciones[rol]?.length">
+            {{ resultado.asignaciones[rol]?.length || 0 }} Asignados
           </span>
         </div>
-
         <div class="table-container">
-          <table *ngIf="resultado.asignaciones[rol] && resultado.asignaciones[rol].length > 0">
+          <table *ngIf="resultado.asignaciones[rol]?.length">
             <thead>
-              <tr>
-                <th>DNI</th>
-                <th>Nombre Completo</th>
-                <th class="text-right">Rendimiento (kg/h)</th>
-              </tr>
+              <tr><th>DNI</th><th>Nombre Completo</th><th class="text-right">Rendimiento (kg/h)</th></tr>
             </thead>
             <tbody>
-              <tr *ngFor="let trab of resultado.asignaciones[rol]">
-                <td>{{ trab.dni }}</td>
-                <td class="worker-name">{{ trab.nombreCompleto }}</td>
-                <td class="text-right font-semibold">{{ trab.rendimiento | number:'1.2-2' }}</td>
+              <tr *ngFor="let t of resultado.asignaciones[rol]">
+                <td>{{ t.dni }}</td>
+                <td class="worker-name">{{ t.nombreCompleto }}</td>
+                <td class="text-right font-semibold">{{ t.rendimiento | number:'1.2-2' }}</td>
               </tr>
             </tbody>
           </table>
-          <div *ngIf="!resultado.asignaciones[rol] || resultado.asignaciones[rol].length === 0" class="no-workers">
-            No hay personal asignado para este rol.
-          </div>
+          <div *ngIf="!resultado.asignaciones[rol]?.length" class="no-workers">No hay personal asignado para este rol.</div>
         </div>
       </div>
     </div>
 
+    <div style="text-align: center; margin-top: 2rem;">
+      <button (click)="enviarALiquidaciones()" class="btn-liquidar" [disabled]="enviando">
+        {{ enviando ? 'Enviando...' : 'Enviar a Liquidación y Pagos →' }}
+      </button>
+    </div>
   </div>
 </div>

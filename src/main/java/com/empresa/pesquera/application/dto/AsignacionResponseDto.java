@@ -41,16 +41,26 @@ public class AsignacionResponseDto {
     }
 
     public static class TrabajadorAsignadoDto {
+        private Long id;
         private String nombreCompleto;
         private String dni;
         private double rendimiento;
 
         public TrabajadorAsignadoDto() {}
 
-        public TrabajadorAsignadoDto(String nombreCompleto, String dni, double rendimiento) {
+        public TrabajadorAsignadoDto(Long id, String nombreCompleto, String dni, double rendimiento) {
+            this.id = id;
             this.nombreCompleto = nombreCompleto;
             this.dni = dni;
             this.rendimiento = rendimiento;
+        }
+
+        public Long getId() {
+            return id;
+        }
+
+        public void setId(Long id) {
+            this.id = id;
         }
 
         public String getNombreCompleto() {

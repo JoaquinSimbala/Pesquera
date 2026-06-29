@@ -1,7 +1,8 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AsignacionService, AsignacionResponse } from '../../../core/services/asignacion';
+import { LiquidacionService } from '../../../core/services/liquidacion';
 
 @Component({
   selector: 'app-asignacion',
@@ -11,44 +12,81 @@ import { AsignacionService, AsignacionResponse } from '../../../core/services/as
   styleUrl: './asignacion.scss',
 })
 export class Asignacion implements OnInit {
-  private asignacionService = inject(AsignacionService);
-  private route = inject(ActivatedRoute);
 
-  isLoading = false;
   resultado: AsignacionResponse | null = null;
-  errorMessage = '';
-  esperandoDatos = true;
+  cargando = false;
+  esperando = true;
+  enviando = false;
+  error = '';
+  roles = ['Apoyos', 'Limpieza', 'Clasificado', 'Envasado'];
 
-  rolesList = ['Apoyos', 'Limpieza', 'Clasificado', 'Envasado'];
+  private kilos = 0;
+  private tiempo = 0;
 
-  ngOnInit() {
+  constructor(
+    private asignacionService: AsignacionService,
+    private liquidacionService: LiquidacionService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
       const kilos = params['kilos'];
       const tiempo = params['tiempo'];
 
       if (kilos && tiempo) {
-        this.esperandoDatos = false;
-        this.cargarAsignacion(Number(kilos), Number(tiempo));
-      } else {
-        this.esperandoDatos = true;
+        this.esperando = false;
+        this.cargando = true;
+        this.kilos = Number(kilos);
+        this.tiempo = Number(tiempo);
+        this.cargarAsignacion();
       }
     });
   }
 
-  cargarAsignacion(kilos: number, tiempoObjetivo: number) {
-    this.isLoading = true;
-    this.errorMessage = '';
-    
-    const calculo = { kilos, tiempoObjetivo };
-
-    this.asignacionService.generarAsignacion(calculo).subscribe({
-      next: (res) => {
-        this.resultado = res;
-        this.isLoading = false;
+  cargarAsignacion(): void {
+    this.asignacionService.generarAsignacion({ kilos: this.kilos, tiempoObjetivo: this.tiempo }).subscribe({
+      next: (resultado) => {
+        this.resultado = resultado;
+        this.cargando = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
-        this.errorMessage = err.error?.message || 'Error al cargar la asignación de personal';
-        this.isLoading = false;
+        this.error = err.error?.message || 'Error al cargar la asignación de personal';
+        this.cargando = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  enviarALiquidaciones(): void {
+    if (!this.resultado) return;
+
+    const horasEfectivas = Math.max(0, this.tiempo - 1);
+    const trabajadores: { trabajadorId: number; kilosProcesados: number }[] = [];
+
+    for (const rol of this.roles) {
+      const lista = this.resultado.asignaciones[rol] || [];
+      for (const trabajador of lista) {
+        trabajadores.push({
+          trabajadorId: trabajador.id,
+          kilosProcesados: Math.round(trabajador.rendimiento * horasEfectivas * 100) / 100
+        });
+      }
+    }
+
+    this.enviando = true;
+    this.liquidacionService.registrarLote(trabajadores).subscribe({
+      next: () => {
+        this.enviando = false;
+        this.router.navigate(['/panel/liquidaciones']);
+      },
+      error: () => {
+        this.enviando = false;
+        this.error = 'Error al enviar las liquidaciones.';
+        this.cdr.detectChanges();
       }
     });
   }

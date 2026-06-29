@@ -20,19 +20,16 @@ public class LiquidacionApiController {
     private final TrabajadorRepository trabajadorRepository;
 
     public LiquidacionApiController(LiquidacionService liquidacionService,
-                                    TrabajadorRepository trabajadorRepository) {
+            TrabajadorRepository trabajadorRepository) {
         this.liquidacionService = liquidacionService;
         this.trabajadorRepository = trabajadorRepository;
     }
 
-    // GET /api/liquidaciones
-    // Devuelve la lista de liquidaciones, el resumen de montos y los trabajadores disponibles
     @GetMapping
     public ResponseEntity<Map<String, Object>> obtenerDatos() {
         List<LiquidacionPago> lista = liquidacionService.listarLiquidaciones();
         LiquidacionService.ResumenLiquidacion resumen = liquidacionService.construirResumen(lista);
 
-        // Convertimos cada entidad a un Map simple para evitar problemas con la serialización lazy de JPA
         List<Map<String, Object>> liquidaciones = lista.stream().map(l -> {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("id", l.getId());
@@ -47,8 +44,7 @@ public class LiquidacionApiController {
             return item;
         }).collect(Collectors.toList());
 
-        // Agrupamos los trabajadores disponibles por su rol operativo
-        String[] roles = {"Apoyos", "Limpieza", "Clasificado", "Envasado"};
+        String[] roles = { "Apoyos", "Limpieza", "Clasificado", "Envasado" };
         Map<String, List<Map<String, Object>>> trabajadoresPorRol = new LinkedHashMap<>();
         for (String rol : roles) {
             List<Map<String, Object>> trabajadoresRol = trabajadorRepository
@@ -81,8 +77,6 @@ public class LiquidacionApiController {
         return ResponseEntity.ok(response);
     }
 
-    // POST /api/liquidaciones/registrar
-    // Recibe trabajadorId y kilosProcesados, calcula la tarifa automáticamente según el rol del trabajador
     @PostMapping("/registrar")
     public ResponseEntity<Map<String, String>> registrar(@RequestBody NuevaLiquidacionRequest request) {
         try {
@@ -93,8 +87,6 @@ public class LiquidacionApiController {
         }
     }
 
-    // POST /api/liquidaciones/{id}/aprobar
-    // Marca una liquidación como aprobada
     @PostMapping("/{id}/aprobar")
     public ResponseEntity<Map<String, String>> aprobar(@PathVariable Long id) {
         try {
@@ -105,6 +97,24 @@ public class LiquidacionApiController {
         }
     }
 
-    // DTO para recibir el cuerpo del POST /registrar
-    public record NuevaLiquidacionRequest(Long trabajadorId, Double kilosProcesados) {}
+    @PostMapping("/registrar-lote")
+    public ResponseEntity<Map<String, String>> registrarLote(@RequestBody RegistroLoteRequest request) {
+        try {
+            for (TrabajadorLoteItem item : request.trabajadores()) {
+                liquidacionService.registrarUnaLiquidacion(item.trabajadorId(), item.kilosProcesados());
+            }
+            return ResponseEntity.ok(Map.of("mensaje", "Liquidaciones registradas correctamente."));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "No se pudo registrar las liquidaciones."));
+        }
+    }
+
+    public record NuevaLiquidacionRequest(Long trabajadorId, Double kilosProcesados) {
+    }
+
+    public record TrabajadorLoteItem(Long trabajadorId, Double kilosProcesados) {
+    }
+
+    public record RegistroLoteRequest(List<TrabajadorLoteItem> trabajadores) {
+    }
 }

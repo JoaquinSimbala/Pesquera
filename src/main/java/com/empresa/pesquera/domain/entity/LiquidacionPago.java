@@ -35,6 +35,9 @@ public class LiquidacionPago {
 
     private LocalDateTime fechaAprobacion;
 
+    @Column(name = "tipo_proceso")
+    private String tipoProceso;
+
     @Column(nullable = false)
     private LocalDateTime fechaRegistro;
 
@@ -108,5 +111,13 @@ public class LiquidacionPago {
 
     public void setFechaRegistro(LocalDateTime fechaRegistro) {
         this.fechaRegistro = fechaRegistro;
+    }
+
+    public String getTipoProceso() {
+        return tipoProceso;
+    }
+
+    public void setTipoProceso(String tipoProceso) {
+        this.tipoProceso = tipoProceso;
     }
 }
