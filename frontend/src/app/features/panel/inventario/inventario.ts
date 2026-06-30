@@ -14,6 +14,11 @@ export class InventarioComponent implements OnInit {
   private fb = inject(FormBuilder);
   private http = inject(HttpClient);
 
+  ingresoForm: FormGroup = this.fb.group({
+    codigoLote: ['', Validators.required],
+    kilosIniciales: ['', [Validators.required, Validators.min(1)]]
+  });
+
   inventarioForm: FormGroup = this.fb.group({
     loteReferencia: ['', Validators.required],
     kilosTotales: ['', [Validators.required, Validators.min(0.1)]],
@@ -25,7 +30,7 @@ export class InventarioComponent implements OnInit {
   destinosDisponibles = signal<string[]>([]);
   lotesDisponibles = signal<{ [key: string]: number }>({});
 
-  mensajeExito = signal<boolean>(false);
+  mensajeExito = signal<string>('');
   mensajeError = signal<string>('');
 
   ngOnInit() {
@@ -45,23 +50,39 @@ export class InventarioComponent implements OnInit {
       });
   }
 
+  registrarIngresoLote() {
+    if (this.ingresoForm.valid) {
+      this.mensajeError.set('');
+      this.http.post('http://localhost:8080/api/supervisor/inventario/ingreso-lote', this.ingresoForm.value)
+        .subscribe({
+          next: () => {
+            this.mensajeExito.set('Lote ingresado a almacen correctamente.');
+            this.ingresoForm.reset();
+            this.cargarDatosDashboard();
+            setTimeout(() => this.mensajeExito.set(''), 3000);
+          },
+          error: (err) => {
+            this.mensajeError.set(err.error?.error || 'Error al ingresar el lote.');
+          }
+        });
+    } else {
+      this.ingresoForm.markAllAsTouched();
+    }
+  }
+
   registrarDistribucion() {
     if (this.inventarioForm.valid) {
       this.mensajeError.set('');
       this.http.post('http://localhost:8080/api/supervisor/inventario/registrar', this.inventarioForm.value)
         .subscribe({
           next: () => {
-            this.mensajeExito.set(true);
+            this.mensajeExito.set('Distribucion registrada exitosamente.');
             this.inventarioForm.reset({loteReferencia: '', destino: ''});
             this.cargarDatosDashboard();
-            setTimeout(() => this.mensajeExito.set(false), 3000);
+            setTimeout(() => this.mensajeExito.set(''), 3000);
           },
           error: (err) => {
-            if (err.error && err.error.error) {
-              this.mensajeError.set(err.error.error);
-            } else {
-              this.mensajeError.set('Error de conexión al registrar.');
-            }
+            this.mensajeError.set(err.error?.error || 'Error al registrar distribucion.');
           }
         });
     } else {

@@ -1,8 +1,11 @@
 package com.empresa.pesquera.application.service;
 
 import com.empresa.pesquera.application.dto.form.RegistroInventarioForm;
+import com.empresa.pesquera.application.dto.form.RegistroLoteForm;
 import com.empresa.pesquera.domain.entity.InventarioDistribucion;
+import com.empresa.pesquera.domain.entity.LoteProduccion;
 import com.empresa.pesquera.infra.persistence.InventarioDistribucionRepository;
+import com.empresa.pesquera.infra.persistence.LoteProduccionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,32 +15,42 @@ import java.util.*;
 @Service
 public class InventarioService {
 
-    private final InventarioDistribucionRepository repository;
+    private final InventarioDistribucionRepository distribucionRepository;
+    private final LoteProduccionRepository loteRepository;
 
-    private final Map<String, Double> lotesProduccion = Map.of(
-            "LOTE-10", 5000.0,
-            "LOTE-11", 3500.0,
-            "LOTE-12", 1200.0
-    );
+    public InventarioService(InventarioDistribucionRepository distribucionRepository, LoteProduccionRepository loteRepository) {
+        this.distribucionRepository = distribucionRepository;
+        this.loteRepository = loteRepository;
+    }
 
-    public InventarioService(InventarioDistribucionRepository repository) {
-        this.repository = repository;
+    @Transactional
+    public void registrarIngresoLote(RegistroLoteForm form) {
+        if (loteRepository.findByCodigoLote(form.getCodigoLote()).isPresent()) {
+            throw new IllegalArgumentException("El lote ya existe en el almacen.");
+        }
+        LoteProduccion lote = new LoteProduccion();
+        lote.setCodigoLote(form.getCodigoLote());
+        lote.setKilosIniciales(form.getKilosIniciales());
+        lote.setFechaRegistro(LocalDate.now());
+        loteRepository.save(lote);
     }
 
     public Map<String, Double> obtenerLotesDisponibles() {
         Map<String, Double> disponibles = new LinkedHashMap<>();
-        for (Map.Entry<String, Double> entry : lotesProduccion.entrySet()) {
-            Double distribuidos = repository.sumarKilosPorLote(entry.getKey());
-            Double restante = entry.getValue() - distribuidos;
+        List<LoteProduccion> lotes = loteRepository.findAll();
+
+        for (LoteProduccion lote : lotes) {
+            Double distribuidos = distribucionRepository.sumarKilosPorLote(lote.getCodigoLote());
+            Double restante = lote.getKilosIniciales() - distribuidos;
             if (restante > 0) {
-                disponibles.put(entry.getKey(), restante);
+                disponibles.put(lote.getCodigoLote(), restante);
             }
         }
         return disponibles;
     }
 
     public List<String> obtenerDestinos() {
-        List<String> destinosDB = repository.findDistinctDestinos();
+        List<String> destinosDB = distribucionRepository.findDistinctDestinos();
         if (destinosDB.isEmpty()) {
             return Arrays.asList("Supermercados", "Mercado Mayorista", "Exportacion", "Mercado Local");
         }
@@ -46,16 +59,14 @@ public class InventarioService {
 
     @Transactional
     public void registrarDistribucion(RegistroInventarioForm form) {
-        Double limiteLote = lotesProduccion.get(form.getLoteReferencia());
-        if (limiteLote == null) {
-            throw new IllegalArgumentException("El lote ingresado no existe o no tiene stock.");
-        }
+        LoteProduccion lote = loteRepository.findByCodigoLote(form.getLoteReferencia())
+                .orElseThrow(() -> new IllegalArgumentException("El lote ingresado no existe."));
 
-        Double yaDistribuidos = repository.sumarKilosPorLote(form.getLoteReferencia());
-        Double stockDisponible = limiteLote - yaDistribuidos;
+        Double yaDistribuidos = distribucionRepository.sumarKilosPorLote(form.getLoteReferencia());
+        Double stockDisponible = lote.getKilosIniciales() - yaDistribuidos;
 
         if (form.getKilosTotales() > stockDisponible) {
-            throw new IllegalArgumentException("Stock insuficiente. El " + form.getLoteReferencia() + " solo tiene " + stockDisponible + " kg disponibles.");
+            throw new IllegalArgumentException("Stock insuficiente. Disponible: " + stockDisponible + " kg.");
         }
 
         InventarioDistribucion inv = new InventarioDistribucion();
@@ -63,11 +74,11 @@ public class InventarioService {
         inv.setKilosTotales(form.getKilosTotales());
         inv.setDestino(form.getDestino());
         inv.setFechaRegistro(LocalDate.now());
-        repository.save(inv);
+        distribucionRepository.save(inv);
     }
 
     public List<InventarioDistribucion> listarHistorial() {
-        return repository.findAllByOrderByFechaRegistroDesc();
+        return distribucionRepository.findAllByOrderByFechaRegistroDesc();
     }
 
     public Map<String, Double> obtenerResumenMetricas() {
@@ -76,7 +87,7 @@ public class InventarioService {
         List<String> destinos = obtenerDestinos();
 
         for (String dest : destinos) {
-            metricas.put(dest, repository.sumarKilosPorDestinoYFecha(dest, ultimoMes));
+            metricas.put(dest, distribucionRepository.sumarKilosPorDestinoYFecha(dest, ultimoMes));
         }
         return metricas;
     }

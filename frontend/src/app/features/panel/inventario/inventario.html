@@ -1,41 +1,53 @@
 <div class="container">
   <h2 class="panel-title">Módulo 5: Inventario y Distribución</h2>
 
+  <div *ngIf="mensajeExito()" class="alert-success">
+    {{ mensajeExito() }}
+  </div>
+
+  <div *ngIf="mensajeError()" class="alert-error">
+    {{ mensajeError() }}
+  </div>
+
   <section class="panel-section">
-    <h3 class="section-title">Registrar Nueva Distribución</h3>
+    <h3 class="section-title">1. Ingresar Lote de Planta a Almacén</h3>
+    <form [formGroup]="ingresoForm" (ngSubmit)="registrarIngresoLote()" class="grid">
 
-    <div *ngIf="mensajeExito()" class="alert-success">
-      Registro guardado exitosamente en el sistema.
-    </div>
+      <div class="form-group">
+        <label for="codigoLote">Código de Lote Nuevo:</label>
+        <input id="codigoLote" type="text" formControlName="codigoLote" placeholder="Ej: LOTE-13">
+      </div>
 
-    <div *ngIf="mensajeError()" class="alert-error">
-      {{ mensajeError() }}
-    </div>
+      <div class="form-group">
+        <label for="kilosIniciales">Kilos Recibidos:</label>
+        <input id="kilosIniciales" type="number" formControlName="kilosIniciales" step="0.1" placeholder="Ej: 5000">
+      </div>
 
+      <div class="form-group" style="justify-content: flex-end;">
+        <button type="submit" class="btn-calc" [disabled]="ingresoForm.invalid">
+          Guardar Lote en Almacén
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section class="panel-section">
+    <h3 class="section-title">2. Registrar Salida / Distribución</h3>
     <form [formGroup]="inventarioForm" (ngSubmit)="registrarDistribucion()" class="grid">
 
       <div class="form-group">
-        <label for="loteReferencia">Lote de Producción:</label>
+        <label for="loteReferencia">Lote de Producción (Stock):</label>
         <select id="loteReferencia" formControlName="loteReferencia">
-          <option value="" disabled selected>Seleccione un Lote (Stock)</option>
+          <option value="" disabled selected>Seleccione un Lote</option>
           <option *ngFor="let lote of lotesDisponibles() | keyvalue" [value]="lote.key">
             {{ lote.key }} (Disp: {{ lote.value }} kg)
           </option>
         </select>
-
-        <div *ngIf="inventarioForm.get('loteReferencia')?.touched && inventarioForm.get('loteReferencia')?.invalid" class="field-error">
-          <span *ngIf="inventarioForm.get('loteReferencia')?.hasError('required')">Debe seleccionar un lote.</span>
-        </div>
       </div>
 
       <div class="form-group">
         <label for="kilosTotales">Kilos a Distribuir:</label>
-        <input id="kilosTotales" type="number" formControlName="kilosTotales" step="0.1" placeholder="Ej: 500.5">
-
-        <div *ngIf="inventarioForm.get('kilosTotales')?.touched && inventarioForm.get('kilosTotales')?.invalid" class="field-error">
-          <span *ngIf="inventarioForm.get('kilosTotales')?.hasError('required')">Los kilos son obligatorios.</span>
-          <span *ngIf="inventarioForm.get('kilosTotales')?.hasError('min')">Debe registrar al menos 0.1 kg.</span>
-        </div>
+        <input id="kilosTotales" type="number" formControlName="kilosTotales" step="0.1">
       </div>
 
       <div class="form-group">
@@ -44,14 +56,10 @@
           <option value="" disabled selected>Seleccione un destino</option>
           <option *ngFor="let dest of destinosDisponibles()" [value]="dest">{{ dest }}</option>
         </select>
-
-        <div *ngIf="inventarioForm.get('destino')?.touched && inventarioForm.get('destino')?.invalid" class="field-error">
-          <span *ngIf="inventarioForm.get('destino')?.hasError('required')">Debe seleccionar un destino.</span>
-        </div>
       </div>
 
       <button type="submit" class="btn-calc" [disabled]="inventarioForm.invalid">
-        Confirmar Registro
+        Confirmar Distribución
       </button>
     </form>
   </section>
@@ -65,8 +73,7 @@
   </section>
 
   <section class="panel-section">
-    <h3 class="section-title">Historial de Salidas</h3>
-
+    <h3 class="section-title">Historial de Distribución</h3>
     <div class="table-wrapper">
       <table>
         <thead>
