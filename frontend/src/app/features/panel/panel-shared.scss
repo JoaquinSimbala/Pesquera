@@ -1,0 +1,226 @@
+$azul: #1a56b0;
+$verde: #1a7a4a;
+$gris: #6b7280;
+$fondo: #f4f6f9;
+$borde: #e2e8f0;
+$blanco: #ffffff;
+
+.modulo {
+  padding: 1.5rem 2rem;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; }
+
+.modulo-header {
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $azul;
+    margin: 0 0 .25rem;
+  }
+  p  {
+    color: $gris;
+    margin: 0;
+    font-size: .95rem; }
+}
+
+.alerta {
+  padding: .75rem 1rem;
+  border-radius: 6px;
+  font-size: .9rem;
+  font-weight: 500;
+  &.alerta-exito {
+    background: #d1fae5;
+    color: #065f46;
+    border-left: 4px solid $verde;
+  }
+  &.alerta-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border-left: 4px solid #dc2626;
+  }
+}
+
+.tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.tarjeta {
+  background: $blanco;
+  border: 1px solid $borde;
+  border-radius: 8px;
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  .tarjeta-valor {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: $azul;
+  }
+  .tarjeta-label {
+    font-size: .8rem;
+    color: $gris;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+}
+
+.acciones {
+  display: flex;
+  gap: .75rem;
+}
+
+.btn-primario {
+  background: $azul;
+  color: $blanco;
+  border: none;
+  border-radius: 6px;
+  padding: .6rem 1.2rem;
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s;
+  &:hover {
+    background: darken($azul, 8%);
+  }
+}
+
+.btn-secundario {
+  background: transparent;
+  color: $gris;
+  border: 1px solid $borde;
+  border-radius: 6px;
+  padding: .6rem 1.2rem;
+  font-size: .9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .2s;
+  &:hover {
+    background: $fondo;
+  }
+}
+
+.formulario-card {
+  background: $blanco;
+  border: 1px solid $borde;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: $azul;
+    margin: 0 0 1rem;
+  }
+}
+
+.formulario-fila {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  label {
+    font-size: .85rem;
+    font-weight: 600;
+    color: #374151;
+  }
+  input, select, textarea {
+    border: 1px solid $borde;
+    border-radius: 6px;
+    padding: .5rem .75rem;
+    font-size: .9rem;
+    color: #111827;
+    font-family: inherit;
+    transition: border-color .2s;
+    &:focus {
+      outline: none;
+      border-color: $azul;
+      box-shadow: 0 0 0 3px rgba(26,86,176,.12); }
+    &:disabled {
+      background: $fondo;
+      color: $gris;
+      cursor: not-allowed;
+    }
+  }
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+  &.campo-ancho {
+    grid-column: 1 / -1;
+  }
+}
+
+.formulario-botones {
+  display: flex;
+  gap: .75rem;
+  margin-top: 1rem;
+}
+
+.tabla-card {
+  background: $blanco;
+  border: 1px solid $borde;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 1rem;
+  }
+}
+
+.tabla-contenedor {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .875rem;
+  th {
+    background: $fondo;
+    color: $gris;
+    font-weight: 600;
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    padding: .6rem .75rem;
+    text-align: left;
+    border-bottom: 1px solid $borde;
+  }
+  td {
+    padding: .65rem .75rem;
+    border-bottom: 1px solid $borde;
+    color: #374151;
+    vertical-align: middle;
+  }
+  tbody tr {
+    transition: background .15s;
+    &:hover {
+      background: #f8fafc;
+    }
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+}
+
+.estado-pantalla {
+  text-align: center;
+  padding: 2rem;
+  color: $gris;
+  font-size: .9rem;
+}

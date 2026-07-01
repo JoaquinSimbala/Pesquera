@@ -2,8 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-// ─── Tipos de datos que vienen del backend ───────────────────────────────────
-
 export interface Costo {
   id: number;
   categoria: string;
@@ -20,7 +18,6 @@ export interface ResumenCostos {
   porCategoria: { [categoria: string]: number };
 }
 
-// Agrupa todo lo que trae el GET /api/costos en una sola llamada
 export interface DatosCostos {
   costos: Costo[];
   resumen: ResumenCostos;
@@ -35,8 +32,6 @@ export interface NuevoCosto {
   descripcion: string;
 }
 
-// ─── Servicio ─────────────────────────────────────────────────────────────────
-
 @Injectable({ providedIn: 'root' })
 export class CostosService {
 
@@ -44,12 +39,10 @@ export class CostosService {
 
   constructor(private http: HttpClient) {}
 
-  // Carga toda la información del módulo en una sola petición
   obtenerDatos(): Observable<DatosCostos> {
     return this.http.get<DatosCostos>(this.URL_BASE, { withCredentials: true });
   }
 
-  // Envía un nuevo costo operacional al backend
   registrar(costo: NuevoCosto): Observable<any> {
     return this.http.post(`${this.URL_BASE}/registrar`, costo, { withCredentials: true });
   }

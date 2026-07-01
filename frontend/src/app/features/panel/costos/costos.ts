@@ -37,7 +37,6 @@ export class Costos implements OnInit {
     private costosService: CostosService,
     private cdr: ChangeDetectorRef
   ) {
-    // Inicializamos la fecha aquí para que sea seguro
     const hoy = new Date();
     const anio = hoy.getFullYear();
     const mes = String(hoy.getMonth() + 1).padStart(2, '0');

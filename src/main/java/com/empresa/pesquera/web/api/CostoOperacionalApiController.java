@@ -22,8 +22,6 @@ public class CostoOperacionalApiController {
         this.costoService = costoService;
     }
 
-    // GET /api/costos
-    // Devuelve la lista de costos, el resumen del mes y las categorías disponibles
     @GetMapping
     public ResponseEntity<Map<String, Object>> obtenerDatos() {
         List<CostoOperacional> lista = costoService.listarCostos();
@@ -54,8 +52,6 @@ public class CostoOperacionalApiController {
         return ResponseEntity.ok(response);
     }
 
-    // POST /api/costos/registrar
-    // Recibe los datos del formulario y guarda un nuevo costo operacional
     @PostMapping("/registrar")
     public ResponseEntity<Map<String, String>> registrar(@RequestBody NuevoCostoRequest request) {
         try {
@@ -72,7 +68,6 @@ public class CostoOperacionalApiController {
         }
     }
 
-    // DTO para recibir el cuerpo del POST /registrar
     public record NuevoCostoRequest(
             String categoria,
             String concepto,
