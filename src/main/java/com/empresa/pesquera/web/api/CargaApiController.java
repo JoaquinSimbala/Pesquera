@@ -25,7 +25,7 @@ public class CargaApiController {
     @PostMapping("/calcular")
     public ResponseEntity<?> calcularCarga(@Valid @RequestBody CalculoCarga calculo) {
         try {
-            Map<String, Integer> necesarios = calculoService.calcularPersonalPulpo(calculo);
+            Map<String, Integer> necesarios = calculoService.calcularPersonalPorEspecie(calculo);
 
             Map<String, Integer> disponibles = new LinkedHashMap<>();
             String[] roles = {"Apoyos", "Limpieza", "Clasificado", "Envasado"};

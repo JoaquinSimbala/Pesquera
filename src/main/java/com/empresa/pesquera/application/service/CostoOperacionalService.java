@@ -3,6 +3,8 @@ package com.empresa.pesquera.application.service;
 import com.empresa.pesquera.application.dto.form.RegistroCostoForm;
 import com.empresa.pesquera.domain.entity.CostoOperacional;
 import com.empresa.pesquera.infra.persistence.CostoOperacionalRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,8 +37,8 @@ public class CostoOperacionalService {
         repository.save(costo);
     }
 
-    public List<CostoOperacional> listarCostos() {
-        return repository.findAllByOrderByFechaCostoDescFechaRegistroDesc();
+    public Page<CostoOperacional> listarCostos(Pageable pageable) {
+        return repository.findAllByOrderByFechaCostoDescFechaRegistroDesc(pageable);
     }
 
     public ResumenCostos construirResumen() {
@@ -54,7 +56,7 @@ public class CostoOperacionalService {
     }
 
     public List<String> categorias() {
-        return List.of("Insumos", "Servicios", "Mantenimiento", "Transporte", "Otros");
+        return List.of("Insumos", "Servicios", "Mantenimiento", "Transporte", "Personal", "Otros");
     }
 
     private double redondear(Double valor) {

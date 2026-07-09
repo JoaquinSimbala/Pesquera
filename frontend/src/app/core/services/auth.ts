@@ -1,6 +1,7 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of, throwError } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface AuthResponse {
   type: string;
@@ -19,7 +20,7 @@ export interface UserState {
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_URL = 'http://localhost:8080/api/auth';
+  private readonly API_URL = `${environment.apiUrl}/auth`;
   
   private userState = signal<UserState>({
     username: '',

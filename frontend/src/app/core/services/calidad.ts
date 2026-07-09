@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { PaginatedResponse } from './auditoria';
+import { environment } from '../../../environments/environment';
 
 export interface ControlCalidad {
   id?: number;
@@ -27,7 +29,7 @@ export interface CalidadMetricas {
   providedIn: 'root'
 })
 export class CalidadService {
-  private readonly API_URL = 'http://localhost:8080/api/calidad';
+  private readonly API_URL = `${environment.apiUrl}/calidad`;
 
   constructor(private http: HttpClient) {}
 
@@ -37,8 +39,8 @@ export class CalidadService {
     });
   }
 
-  getHistorial(): Observable<ControlCalidad[]> {
-    return this.http.get<ControlCalidad[]>(`${this.API_URL}/historial`, {
+  getHistorial(page = 0, size = 10): Observable<PaginatedResponse<ControlCalidad>> {
+    return this.http.get<PaginatedResponse<ControlCalidad>>(`${this.API_URL}/historial?page=${page}&size=${size}`, {
       withCredentials: true
     });
   }

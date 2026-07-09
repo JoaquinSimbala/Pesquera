@@ -33,3 +33,6 @@ build/
 .vscode/
 docs/
 estructura-propuesta.md
+
+# Local Environment Variables
+.env

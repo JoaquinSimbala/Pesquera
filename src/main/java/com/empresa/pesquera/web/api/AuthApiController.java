@@ -6,6 +6,7 @@ import com.empresa.pesquera.domain.entity.Usuario;
 import com.empresa.pesquera.infra.persistence.UsuarioRepository;
 import com.empresa.pesquera.infra.security.jwt.JwtCookieService;
 import com.empresa.pesquera.infra.security.jwt.JwtService;
+import com.empresa.pesquera.infra.security.AuditoriaService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -31,15 +32,18 @@ public class AuthApiController {
     private final UsuarioRepository usuarioRepository;
     private final JwtService jwtService;
     private final JwtCookieService jwtCookieService;
+    private final AuditoriaService auditoriaService;
 
     public AuthApiController(AuthenticationManager authenticationManager,
             UsuarioRepository usuarioRepository,
             JwtService jwtService,
-            JwtCookieService jwtCookieService) {
+            JwtCookieService jwtCookieService,
+            AuditoriaService auditoriaService) {
         this.authenticationManager = authenticationManager;
         this.usuarioRepository = usuarioRepository;
         this.jwtService = jwtService;
         this.jwtCookieService = jwtCookieService;
+        this.auditoriaService = auditoriaService;
     }
 
     @PostMapping("/login")
@@ -59,6 +63,8 @@ public class AuthApiController {
                     usuario.getRol(),
                     jwtService.extraerExpiracion(token));
 
+            auditoriaService.registrar(usuario, "Inicio de Sesión", "Inicio de sesión exitoso");
+
             return ResponseEntity.status(HttpStatus.OK)
                     .header("Set-Cookie", cookieJwt.toString())
                     .body(response);
@@ -70,6 +76,7 @@ public class AuthApiController {
 
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logout() {
+        auditoriaService.registrar("Cierre de Sesión", "Cierre de sesión exitoso");
         ResponseCookie cookieJwt = jwtCookieService.eliminarCookieJwt();
         Map<String, String> response = new HashMap<>();
         response.put("message", "Sesión cerrada");

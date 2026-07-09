@@ -1,19 +1,8 @@
 package com.empresa.pesquera.infra.bootstrap;
 
-import com.empresa.pesquera.domain.entity.ControlCalidad;
-import com.empresa.pesquera.domain.entity.CostoOperacional;
-import com.empresa.pesquera.domain.entity.InventarioDistribucion;
-import com.empresa.pesquera.domain.entity.LiquidacionPago;
-import com.empresa.pesquera.domain.entity.RendimientoDiario;
-import com.empresa.pesquera.domain.entity.Trabajador;
-import com.empresa.pesquera.domain.entity.Usuario;
-import com.empresa.pesquera.infra.persistence.ControlCalidadRepository;
-import com.empresa.pesquera.infra.persistence.CostoOperacionalRepository;
-import com.empresa.pesquera.infra.persistence.InventarioDistribucionRepository;
-import com.empresa.pesquera.infra.persistence.LiquidacionPagoRepository;
-import com.empresa.pesquera.infra.persistence.RendimientoDiarioRepository;
-import com.empresa.pesquera.infra.persistence.TrabajadorRepository;
-import com.empresa.pesquera.infra.persistence.UsuarioRepository;
+import com.empresa.pesquera.domain.entity.*;
+import com.empresa.pesquera.infra.persistence.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +14,20 @@ import java.util.List;
 @Service
 public class DataInitializer {
 
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(DataInitializer.class);
+
+    @Value("${app.default.gerente.username:gerente_general}")
+    private String defaultGerenteUsername;
+
+    @Value("${app.default.gerente.password:pota2026}")
+    private String defaultGerentePassword;
+
+    @Value("${app.default.supervisor.username:supervisor_planta}")
+    private String defaultSupervisorUsername;
+
+    @Value("${app.default.supervisor.password:planta2026}")
+    private String defaultSupervisorPassword;
+
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final TrabajadorRepository trabajadorRepository;
@@ -32,7 +35,11 @@ public class DataInitializer {
     private final ControlCalidadRepository controlCalidadRepository;
     private final CostoOperacionalRepository costoOperacionalRepository;
     private final InventarioDistribucionRepository inventarioDistribucionRepository;
+    private final LoteProduccionRepository loteRepository;
     private final LiquidacionPagoRepository liquidacionPagoRepository;
+    private final ConfiguracionProcesoRepository configuracionProcesoRepository;
+    private final EspecieRepository especieRepository;
+    private final RolOperativoRepository rolOperativoRepository;
 
     public DataInitializer(UsuarioRepository usuarioRepository,
                            PasswordEncoder passwordEncoder,
@@ -41,7 +48,11 @@ public class DataInitializer {
                            ControlCalidadRepository controlCalidadRepository,
                            CostoOperacionalRepository costoOperacionalRepository,
                            InventarioDistribucionRepository inventarioDistribucionRepository,
-                           LiquidacionPagoRepository liquidacionPagoRepository) {
+                           LoteProduccionRepository loteRepository,
+                           LiquidacionPagoRepository liquidacionPagoRepository,
+                           ConfiguracionProcesoRepository configuracionProcesoRepository,
+                           EspecieRepository especieRepository,
+                           RolOperativoRepository rolOperativoRepository) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.trabajadorRepository = trabajadorRepository;
@@ -49,72 +60,127 @@ public class DataInitializer {
         this.controlCalidadRepository = controlCalidadRepository;
         this.costoOperacionalRepository = costoOperacionalRepository;
         this.inventarioDistribucionRepository = inventarioDistribucionRepository;
+        this.loteRepository = loteRepository;
         this.liquidacionPagoRepository = liquidacionPagoRepository;
+        this.configuracionProcesoRepository = configuracionProcesoRepository;
+        this.especieRepository = especieRepository;
+        this.rolOperativoRepository = rolOperativoRepository;
     }
 
     @Transactional
     public void seedDevelopmentData() {
-        if (usuarioRepository.count() == 0) {
-            Usuario gerente = new Usuario();
-            gerente.setUsername("gerente_general");
-            gerente.setPassword(passwordEncoder.encode("pota2026"));
-            gerente.setRol("GERENTE");
-            usuarioRepository.save(gerente);
-            System.out.println("Usuario Gerente creado por defecto.");
+        Usuario gerente = null;
+        Usuario supervisor = null;
 
-            Usuario supervisor = new Usuario();
-            supervisor.setUsername("supervisor_planta");
-            supervisor.setPassword(passwordEncoder.encode("planta2026"));
+        if (usuarioRepository.count() == 0) {
+            gerente = new Usuario();
+            gerente.setUsername(defaultGerenteUsername);
+            gerente.setPassword(passwordEncoder.encode(defaultGerentePassword));
+            gerente.setRol("GERENTE");
+            gerente = usuarioRepository.save(gerente);
+            logger.info("Usuario Gerente creado por defecto.");
+
+            supervisor = new Usuario();
+            supervisor.setUsername(defaultSupervisorUsername);
+            supervisor.setPassword(passwordEncoder.encode(defaultSupervisorPassword));
             supervisor.setRol("SUPERVISOR");
-            usuarioRepository.save(supervisor);
-            System.out.println("Usuario Supervisor creado por defecto.");
+            supervisor = usuarioRepository.save(supervisor);
+            logger.info("Usuario Supervisor creado por defecto.");
+        } else {
+            gerente = usuarioRepository.findByUsername(defaultGerenteUsername).orElse(null);
+            supervisor = usuarioRepository.findByUsername(defaultSupervisorUsername).orElse(null);
         }
 
+        
+        Especie pulpo = especieRepository.findByNombre("Pulpo").orElseGet(() -> especieRepository.save(new Especie("Pulpo")));
+        Especie atun = especieRepository.findByNombre("Atún").orElseGet(() -> especieRepository.save(new Especie("Atún")));
+        Especie caballa = especieRepository.findByNombre("Caballa").orElseGet(() -> especieRepository.save(new Especie("Caballa")));
+
+        RolOperativo apoyos = rolOperativoRepository.findByNombre("Apoyos").orElseGet(() -> rolOperativoRepository.save(new RolOperativo("Apoyos")));
+        RolOperativo limpieza = rolOperativoRepository.findByNombre("Limpieza").orElseGet(() -> rolOperativoRepository.save(new RolOperativo("Limpieza")));
+        RolOperativo clasificado = rolOperativoRepository.findByNombre("Clasificado").orElseGet(() -> rolOperativoRepository.save(new RolOperativo("Clasificado")));
+        RolOperativo envasado = rolOperativoRepository.findByNombre("Envasado").orElseGet(() -> rolOperativoRepository.save(new RolOperativo("Envasado")));
+
+        
+        seedConfiguraciones(gerente, pulpo, atun, caballa, apoyos, limpieza, clasificado, envasado);
+
         if (trabajadorRepository.count() < 100) {
-            System.out.println("Limpiando y creando trabajadores de prueba...");
+            logger.info("Limpiando y creando trabajadores de prueba...");
 
             rendimientoRepository.deleteAll();
             trabajadorRepository.deleteAll();
 
-            generarTrabajadores("Apoyos", 12, 500.0);
-            generarTrabajadores("Limpieza", 50, 60.0);
-            generarTrabajadores("Clasificado", 30, 250.0);
-            generarTrabajadores("Envasado", 25, 150.0);
+            generarTrabajadores(apoyos, 12, 500.0, gerente);
+            generarTrabajadores(limpieza, 50, 60.0, gerente);
+            generarTrabajadores(clasificado, 30, 250.0, gerente);
+            generarTrabajadores(envasado, 25, 150.0, gerente);
 
-            System.out.println("Trabajadores de prueba creados exitosamente.");
+            logger.info("Trabajadores de prueba creados exitosamente.");
         }
 
-        seedControlCalidad();
-        seedCostosOperacionales();
-        seedInventarioDistribucion();
-        seedLiquidacionesPago();
+        seedControlCalidad(supervisor);
+        seedCostosOperacionales(gerente);
+        seedInventarioDistribucion(supervisor);
+        seedLiquidacionesPago(gerente);
     }
 
-    private final String[] nombresMasc = {"Luis", "Carlos", "José", "Jorge", "Víctor", "Miguel", "Julio", "César", "Manuel", "Martín", "Roberto", "Fernando"};
-    private final String[] nombresFem = {"María", "Rosa", "Ana", "Carmen", "Luz", "Silvia", "Elena", "Julia", "Mónica", "Milagros", "Roxana", "Patricia"};
-    private final String[] apellidos = {"Quispe", "Flores", "Rodríguez", "Sánchez", "García", "Rojas", "Díaz", "Huamán", "Mamani", "Vargas", "Ramos", "Mendoza", "Condori", "Castro"};
-    private final String[] lotesCalidad = {"LOTE-FRIO", "LOTE-ATUN", "LOTE-CONGELADO", "LOTE-ENLATADO", "LOTE-FILETE"};
-    private final String[] estadosHaccp = {"APROBADO", "OBSERVADO", "RECHAZADO"};
-    private final String[] categoriasCosto = {"Insumos", "Energía", "Mantenimiento", "Transporte", "Personal"};
-    private final String[] conceptosCosto = {"Compra de hielo", "Consumo eléctrico", "Reparación de equipos", "Combustible", "Horas extra", "Material de limpieza"};
-    private final String[] destinosInventario = {"Mercado Local", "Planta Congelado", "Exportación", "Mayorista Nacional", "Puerto de Despacho"};
+    private void seedConfiguraciones(Usuario admin, Especie pulpo, Especie atun, Especie caballa,
+                                     RolOperativo apoyos, RolOperativo limpieza, RolOperativo clasificado, RolOperativo envasado) {
+        if (configuracionProcesoRepository.count() > 0) {
+            return;
+        }
 
-    private String generarNombrePeruano() {
-        String nombre = Math.random() > 0.5
-                ? nombresMasc[(int) (Math.random() * nombresMasc.length)]
-                : nombresFem[(int) (Math.random() * nombresFem.length)];
-        String apellidoPaterno = apellidos[(int) (Math.random() * apellidos.length)];
-        String apellidoMaterno = apellidos[(int) (Math.random() * apellidos.length)];
-        return nombre + " " + apellidoPaterno + " " + apellidoMaterno;
+        
+        crearConfiguracion(pulpo, apoyos, 500.0, 0.05, admin);
+        crearConfiguracion(pulpo, limpieza, 60.0, 0.15, admin);
+        crearConfiguracion(pulpo, clasificado, 250.0, 0.12, admin);
+        crearConfiguracion(pulpo, envasado, 150.0, 0.10, admin);
+
+        
+        crearConfiguracion(atun, apoyos, 600.0, 0.07, admin);
+        crearConfiguracion(atun, limpieza, 100.0, 0.18, admin);
+        crearConfiguracion(atun, clasificado, 300.0, 0.15, admin);
+        crearConfiguracion(atun, envasado, 200.0, 0.12, admin);
+
+        
+        crearConfiguracion(caballa, apoyos, 550.0, 0.06, admin);
+        crearConfiguracion(caballa, limpieza, 80.0, 0.16, admin);
+        crearConfiguracion(caballa, clasificado, 280.0, 0.14, admin);
+        crearConfiguracion(caballa, envasado, 180.0, 0.11, admin);
     }
 
-    private void generarTrabajadores(String rol, int cantidad, double rendimientoBase) {
+    private void crearConfiguracion(Especie especie, RolOperativo rol, double rendimiento, double tarifa, Usuario admin) {
+        ConfiguracionProceso cfg = new ConfiguracionProceso();
+        cfg.setEspecie(especie);
+        cfg.setRol(rol);
+        cfg.setRendimientoBase(rendimiento);
+        cfg.setTarifaPorKilo(tarifa);
+        cfg.setUsuario(admin);
+        configuracionProcesoRepository.save(cfg);
+    }
+
+    private void generarTrabajadores(RolOperativo rol, int cantidad, double rendimientoBase, Usuario gerente) {
         for (int i = 1; i <= cantidad; i++) {
             Trabajador t = new Trabajador();
             t.setNombreCompleto(generarNombrePeruano());
             t.setDni(String.format("88%06d", (int) (Math.random() * 999999)));
             t.setRolOperativo(rol);
             t.setDisponible(true);
+            t.setUsuario(gerente);
+
+            
+            
+            double randVal = Math.random();
+            double yld;
+            if (randVal < 0.2) {
+                yld = Math.round((rendimientoBase * 0.65) * 100.0) / 100.0; 
+            } else if (randVal < 0.6) {
+                yld = Math.round((rendimientoBase * 1.15) * 100.0) / 100.0; 
+            } else {
+                yld = Math.round((rendimientoBase * 1.66) * 100.0) / 100.0; 
+            }
+
+            t.setRendimientoPromedio(yld);
             trabajadorRepository.save(t);
 
             if (Math.random() > 0.2) {
@@ -122,40 +188,50 @@ public class DataInitializer {
                 r.setTrabajador(t);
                 r.setFecha(LocalDate.now().minusDays(1));
                 r.setHorasTrabajadas(8.0);
-
-                double variacion = 0.8 + (Math.random() * 0.4);
-                r.setKilosProcesados(8.0 * (rendimientoBase * variacion));
+                r.setKilosProcesados(Math.round(8.0 * yld * 100.0) / 100.0);
                 rendimientoRepository.save(r);
             }
         }
     }
 
-    private void seedControlCalidad() {
+    private String generarNombrePeruano() {
+        String[] nombres = { "Juan", "Luis", "Carlos", "José", "Pedro", "Jorge", "Manuel", "Víctor", "Miguel", "Francisco",
+                "María", "Ana", "Rosa", "Carmen", "Juana", "Luz", "Elena", "Silvia", "Elizabeth", "Nancy" };
+        String[] apellidos = { "Quispe", "Flores", "Sánchez", "García", "Rodríguez", "Rojas", "Huamán", "Mamani", "Vargas",
+                "Castillo", "Chávez", "Gómez", "Díaz", "Ramos", "López", "Mendoza", "Ruiz", "Pinto", "Salazar", "Cárdenas" };
+        return nombres[(int) (Math.random() * nombres.length)] + " " + apellidos[(int) (Math.random() * apellidos.length)]
+                + " " + apellidos[(int) (Math.random() * apellidos.length)];
+    }
+
+    private void seedControlCalidad(Usuario supervisor) {
         if (controlCalidadRepository.count() >= 20) {
             return;
         }
 
         controlCalidadRepository.deleteAll();
 
+        String[] estados = { "APROBADO", "APROBADO", "RECHAZADO" };
+
         for (int i = 1; i <= 20; i++) {
-            ControlCalidad controlCalidad = new ControlCalidad();
-            controlCalidad.setLoteReferencia(String.format("%s-%03d", lotesCalidad[i % lotesCalidad.length], i));
-            controlCalidad.setTemperatura(2.5 + (i % 6) * 0.6);
-            controlCalidad.setPh(6.2 + (i % 5) * 0.12);
-            controlCalidad.setHigienePersonal(i % 5 != 0);
-            controlCalidad.setLimpiezaEquipos(i % 4 != 0);
-            String estado = estadosHaccp[(i - 1) % estadosHaccp.length];
-            if (i % 7 == 0) {
-                estado = "RECHAZADO";
-            }
-            controlCalidad.setEstadoHaccp(estado);
-            controlCalidad.setObservaciones(obtenerObservacionCalidad(estado));
-            controlCalidad.setFechaRegistro(LocalDate.now().minusDays(i));
-            controlCalidadRepository.save(controlCalidad);
+            ControlCalidad control = new ControlCalidad();
+            control.setLoteReferencia(String.format("LOTE-%03d", i));
+            control.setTemperatura(Math.round((-2.0 + (i * 0.35)) * 100.0) / 100.0);
+            control.setPh(Math.round((5.5 + (i * 0.08)) * 100.0) / 100.0);
+            control.setHigienePersonal(i % 5 != 0);
+            control.setLimpiezaEquipos(i % 7 != 0);
+            control.setEstadoHaccp(estados[i % estados.length]);
+            control.setObservaciones("Inspección de calidad rutinaria para el lote " + control.getLoteReferencia());
+            control.setFechaRegistro(LocalDate.now().minusDays(i));
+            control.setUsuario(supervisor);
+            controlCalidadRepository.save(control);
         }
     }
 
-    private void seedCostosOperacionales() {
+    private void seedCostosOperacionales(Usuario gerente) {
+        String[] categoriasCosto = { "Logistica", "Suministros", "Mantenimiento", "Seguridad", "Servicios" };
+        String[] conceptosCosto = { "Transporte de carga", "Cajas de empaque", "Repuestos de maquina",
+                "Epps de personal", "Consumo de agua", "Consumo de energia", "Limpieza de planta" };
+
         if (costoOperacionalRepository.count() >= 20) {
             return;
         }
@@ -170,28 +246,43 @@ public class DataInitializer {
             costo.setFechaCosto(LocalDate.now().minusDays(i * 2L));
             costo.setDescripcion("Registro operativo generado para control de costos del proceso pesquero.");
             costo.setFechaRegistro(LocalDateTime.now().minusDays(i));
+            costo.setUsuario(gerente);
             costoOperacionalRepository.save(costo);
         }
     }
 
-    private void seedInventarioDistribucion() {
+    private void seedInventarioDistribucion(Usuario supervisor) {
         if (inventarioDistribucionRepository.count() >= 20) {
             return;
         }
 
         inventarioDistribucionRepository.deleteAll();
+        loteRepository.deleteAll();
+
+        String[] destinosInventario = { "Supermercados", "Mercado Mayorista", "Exportacion", "Mercado Local" };
 
         for (int i = 1; i <= 20; i++) {
+            String loteCod = String.format("INV-%03d", i);
+
+            
+            LoteProduccion lote = new LoteProduccion();
+            lote.setCodigoLote(loteCod);
+            lote.setKilosIniciales(1000.0);
+            lote.setFechaRegistro(LocalDate.now().minusDays(i + 5));
+            loteRepository.save(lote);
+
+            
             InventarioDistribucion inventario = new InventarioDistribucion();
-            inventario.setLoteReferencia(String.format("INV-%03d", i));
+            inventario.setLoteReferencia(loteCod);
             inventario.setKilosTotales(180.0 + (i * 22.5));
             inventario.setDestino(destinosInventario[i % destinosInventario.length]);
             inventario.setFechaRegistro(LocalDate.now().minusDays(i));
+            inventario.setUsuario(supervisor);
             inventarioDistribucionRepository.save(inventario);
         }
     }
 
-    private void seedLiquidacionesPago() {
+    private void seedLiquidacionesPago(Usuario gerente) {
         if (liquidacionPagoRepository.count() >= 20) {
             return;
         }
@@ -213,20 +304,13 @@ public class DataInitializer {
             liquidacion.setTrabajador(trabajador);
             liquidacion.setKilosProcesados(kilosProcesados);
             liquidacion.setTarifaPorKilo(tarifaPorKilo);
-            liquidacion.setMontoTotal(montoTotal);
-            liquidacion.setFechaProduccion(LocalDate.now().minusDays(i + 1L));
-            liquidacion.setAprobado(i % 4 != 0);
-            liquidacion.setFechaAprobacion(liquidacion.getAprobado() ? LocalDateTime.now().minusDays(i) : null);
+            liquidacion.setMontoTotal(Math.round(montoTotal * 100.0) / 100.0);
+            liquidacion.setFechaProduccion(LocalDate.now().minusDays(i));
+            liquidacion.setAprobado(i % 3 != 0);
+            liquidacion.setTipoProceso("PRODUCCION");
             liquidacion.setFechaRegistro(LocalDateTime.now().minusDays(i));
+            liquidacion.setUsuario(gerente);
             liquidacionPagoRepository.save(liquidacion);
         }
-    }
-
-    private String obtenerObservacionCalidad(String estadoHaccp) {
-        return switch (estadoHaccp) {
-            case "RECHAZADO" -> "Se detectaron desviaciones críticas en higiene y control térmico.";
-            case "OBSERVADO" -> "Requiere verificación adicional antes de liberar el lote.";
-            default -> "Cumple con los parámetros operativos del control de calidad.";
-        };
     }
 }

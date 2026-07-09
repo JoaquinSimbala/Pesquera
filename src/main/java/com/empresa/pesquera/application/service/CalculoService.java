@@ -1,49 +1,59 @@
 package com.empresa.pesquera.application.service;
 
 import com.empresa.pesquera.application.dto.form.CalculoCarga;
+import com.empresa.pesquera.domain.entity.ConfiguracionProceso;
+import com.empresa.pesquera.infra.persistence.ConfiguracionProcesoRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 @Service
 public class CalculoService {
 
-    private static class EtapaProceso {
-        private final String rol;
-        private final double rendimiento;
+    private final ConfiguracionProcesoRepository configuracionProcesoRepository;
 
-        private EtapaProceso(String rol, double rendimiento) {
-            this.rol = rol;
-            this.rendimiento = rendimiento;
-        }
+    public CalculoService(ConfiguracionProcesoRepository configuracionProcesoRepository) {
+        this.configuracionProcesoRepository = configuracionProcesoRepository;
     }
 
-    public Map<String, Integer> calcularPersonalPulpo(CalculoCarga datos) {
-
-        if (datos.getKilos() == null || datos.getTiempoObjetivo() == null) {
+    public Map<String, Integer> calcularPersonalPorEspecie(CalculoCarga datos) {
+        if (datos.getKilos() == null || datos.getTiempoObjetivo() == null || datos.getEspecie() == null) {
             return new LinkedHashMap<>();
         }
         double tiempoEfectivo = datos.getTiempoObjetivo() - 1;
 
-        if (tiempoEfectivo <= 0)
+        if (tiempoEfectivo <= 0) {
             return new LinkedHashMap<>();
+        }
 
-        List<EtapaProceso> etapas = new ArrayList<>();
-        etapas.add(new EtapaProceso("Apoyos", 500.0));
-        etapas.add(new EtapaProceso("Limpieza", 60.0));
-        etapas.add(new EtapaProceso("Clasificado", 250.0));
-        etapas.add(new EtapaProceso("Envasado", 150.0));
-
+        String[] roles = {"Apoyos", "Limpieza", "Clasificado", "Envasado"};
         Map<String, Integer> resultados = new LinkedHashMap<>();
 
-        for (EtapaProceso etapa : etapas) {
-            int personas = (int) Math.ceil(datos.getKilos() / (etapa.rendimiento * tiempoEfectivo));
-            resultados.put(etapa.rol, personas);
+        for (String rol : roles) {
+            double rendimiento = configuracionProcesoRepository.findByEspecieAndRol(datos.getEspecie(), rol)
+                    .map(ConfiguracionProceso::getRendimientoBase)
+                    .orElseGet(() -> {
+                        
+                        return switch (rol) {
+                            case "Apoyos" -> 500.0;
+                            case "Limpieza" -> 60.0;
+                            case "Clasificado" -> 250.0;
+                            default -> 150.0;
+                        };
+                    });
+
+            int personas = (int) Math.ceil(datos.getKilos() / (rendimiento * tiempoEfectivo));
+            resultados.put(rol, personas);
         }
 
         return resultados;
+    }
+
+    public Map<String, Integer> calcularPersonalPulpo(CalculoCarga datos) {
+        if (datos.getEspecie() == null) {
+            datos.setEspecie("Pulpo");
+        }
+        return calcularPersonalPorEspecie(datos);
     }
 }

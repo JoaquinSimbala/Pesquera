@@ -1,0 +1,111 @@
+@use '../panel-shared' as *;
+@use '../../../../variables' as *;
+
+.campo-filtro-usuario {
+  max-width: 380px;
+}
+
+.tabla-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+
+  h3 {
+    margin: 0;
+  }
+
+  .contador-registros {
+    font-size: 0.85rem;
+    color: $color-text-muted;
+    background: rgba(255, 255, 255, 0.45);
+    padding: 0.35rem 0.85rem;
+    border-radius: 20px;
+    border: 1px solid rgba(97, 201, 168, 0.12);
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5);
+
+    strong {
+      color: $color-primary-dark;
+    }
+  }
+}
+
+
+.badge-rol {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  letter-spacing: 0.02em;
+
+  &.badge-gerente {
+    background: rgba(239, 71, 111, 0.08);
+    color: $color-error;
+    border-color: rgba(239, 71, 111, 0.12);
+  }
+
+  &.badge-supervisor {
+    background: rgba(97, 201, 168, 0.1);
+    color: $color-primary-dark;
+    border-color: rgba(97, 201, 168, 0.15);
+  }
+}
+
+
+.fila-actividad {
+  td {
+    padding: 1rem 0.9rem;
+  }
+
+  .col-username {
+    color: $color-secondary;
+  }
+
+  .col-accion {
+    color: $color-secondary;
+    font-weight: 700;
+  }
+
+  .col-detalle {
+    color: $color-text-muted;
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+
+  .col-fecha {
+    color: $color-text-muted;
+    font-size: 0.85rem;
+  }
+}
+
+.table-empty {
+  padding: 3rem !important;
+  color: $color-text-muted;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+
+.loader-glass {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(97, 201, 168, 0.15);
+  border-radius: 50%;
+  display: inline-block;
+  border-top-color: $color-primary-dark;
+  animation: rotation 0.8s linear infinite;
+  margin-bottom: 0.75rem;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface Liquidacion {
   id: number;
@@ -26,30 +27,35 @@ export interface Trabajador {
   id: number;
   nombre: string;
   dni: string;
+  rolOperativo: string;
 }
 
 export interface DatosLiquidacion {
   liquidaciones: Liquidacion[];
   resumen: ResumenLiquidacion;
   trabajadoresPorRol: { [rol: string]: Trabajador[] };
+  especies: any[];
   tarifas: { [rol: string]: number };
+  totalPages?: number;
+  totalElements?: number;
+  currentPage?: number;
 }
 
 @Injectable({ providedIn: 'root' })
 export class LiquidacionService {
 
-  private readonly URL_BASE = 'http://localhost:8080/api/liquidaciones';
+  private readonly URL_BASE = `${environment.apiUrl}/liquidaciones`;
 
   constructor(private http: HttpClient) {}
 
-  obtenerDatos(): Observable<DatosLiquidacion> {
-    return this.http.get<DatosLiquidacion>(this.URL_BASE, { withCredentials: true });
+  obtenerDatos(especie: string = 'Pulpo', page = 0, size = 10): Observable<DatosLiquidacion> {
+    return this.http.get<DatosLiquidacion>(`${this.URL_BASE}?especie=${especie}&page=${page}&size=${size}`, { withCredentials: true });
   }
 
-  registrar(trabajadorId: number, kilosProcesados: number): Observable<any> {
+  registrar(trabajadorId: number, kilosProcesados: number, especieId: number): Observable<any> {
     return this.http.post(
       `${this.URL_BASE}/registrar`,
-      { trabajadorId, kilosProcesados },
+      { trabajadorId, kilosProcesados, especieId },
       { withCredentials: true }
     );
   }
@@ -62,10 +68,10 @@ export class LiquidacionService {
     );
   }
 
-  registrarLote(trabajadores: { trabajadorId: number; kilosProcesados: number }[]): Observable<any> {
+  registrarLote(especie: string, trabajadores: { trabajadorId: number; kilosProcesados: number }[]): Observable<any> {
     return this.http.post(
       `${this.URL_BASE}/registrar-lote`,
-      { trabajadores },
+      { especie, trabajadores },
       { withCredentials: true }
     );
   }

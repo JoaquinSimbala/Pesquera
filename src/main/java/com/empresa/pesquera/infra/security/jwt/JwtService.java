@@ -7,6 +7,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
@@ -26,10 +27,12 @@ public class JwtService {
     private static final String ROLE_CLAIM = "rol";
 
     private final JwtProperties jwtProperties;
+    private final Environment env;
     private final SecretKey secretKey;
 
-    public JwtService(JwtProperties jwtProperties) {
+    public JwtService(JwtProperties jwtProperties, Environment env) {
         this.jwtProperties = jwtProperties;
+        this.env = env;
         this.secretKey = resolverClaveFirma(jwtProperties.getSecret());
     }
 
@@ -96,6 +99,11 @@ public class JwtService {
 
     private SecretKey resolverClaveFirma(String secret) {
         if (secret == null || secret.isBlank()) {
+            boolean isProd = java.util.Arrays.asList(env.getActiveProfiles()).contains("prod");
+            if (isProd) {
+                logger.error("FATAL: JWT_SECRET no está configurado en el perfil de producción (prod).");
+                throw new IllegalStateException("JWT_SECRET es obligatorio para arrancar en perfil de producción (prod).");
+            }
             logger.warn("JWT_SECRET no está configurado; se generó una clave temporal para desarrollo.");
             return generarClaveTemporal();
         }

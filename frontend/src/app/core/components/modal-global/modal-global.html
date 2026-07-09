@@ -1,0 +1,14 @@
+<div *ngIf="dialogoService.config() as cfg" class="modal-overlay fade-in" (click)="cancelar()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header" [ngClass]="'header-' + cfg.tipo">
+      <h3>{{ cfg.titulo }}</h3>
+    </div>
+    <div class="modal-body">
+      <p>{{ cfg.mensaje }}</p>
+    </div>
+    <div class="modal-footer">
+      <button *ngIf="cfg.tipo === 'confirmacion'" class="btn-cancelar" (click)="cancelar()">Cancelar</button>
+      <button class="btn-aceptar" [ngClass]="'btn-' + cfg.tipo" (click)="aceptar()">Aceptar</button>
+    </div>
+  </div>
+</div>

@@ -1,66 +1,186 @@
 <div class="asignacion-container fade-in">
-  <h2>Módulo 02: Asignación de Personal Automática</h2>
-  <p class="subtitle">Personal seleccionado y asignado por el sistema según eficiencia para la carga de pesca proyectada.</p>
-
-  <div *ngIf="error" class="alert-banner">{{ error }}</div>
-
-  <div *ngIf="esperando" class="empty-state">
-    <div class="empty-icon"></div>
-    <h3>Esperando datos del Módulo 01</h3>
-    <p>La tabla se generará automáticamente cuando el Módulo de Análisis de Carga envíe los kilos a procesar y el tiempo estimado.</p>
+  <div class="modulo-header">
+    <h2>Gestión y Asignación de Personal</h2>
+    <p class="subtitle">Administración de carga operativa, control de disponibilidad de operarios y envío a liquidación.</p>
   </div>
 
-  <div *ngIf="cargando && !resultado" class="loading-state">
-    <p>Calculando el personal óptimo y extrayendo historial de la base de datos...</p>
+  
+  <div class="tabs-container">
+    <button (click)="cambiarVista('sugerencia')" 
+            [class.active]="vistaActiva === 'sugerencia'"
+            class="tab-btn">
+      Sugerencia de Asignación
+    </button>
+    <button (click)="cambiarVista('ocupados')" 
+            [class.active]="vistaActiva === 'ocupados'"
+            class="tab-btn">
+      Personal Ocupado / Asignaciones Activas
+    </button>
   </div>
 
-  <div *ngIf="resultado" class="fade-in">
-    <div *ngIf="resultado.deficitPersonal" class="alert-deficit">
-      <div class="alert-icon"></div>
-      <div class="alert-content">
-        <h4>Advertencia de Capacidad Operativa</h4>
-        <p>El personal disponible actual <strong>NO es suficiente</strong> para procesar la carga en el tiempo estándar.</p>
-        <p>Se recomienda extender la jornada a <strong>{{ resultado.horasRecomendadas }} horas fijas</strong>.</p>
-      </div>
+  
+  <div *ngIf="vistaActiva === 'sugerencia'" class="fade-in">
+    <div *ngIf="esperando" class="empty-state">
+      <h3>Esperando simulación del Módulo de Carga</h3>
+      <p>Por favor, ingresa los datos de producción en el menú de Análisis de Carga para generar una propuesta automática de personal para la especie seleccionada.</p>
     </div>
 
-    <div *ngIf="!resultado.deficitPersonal" class="alert-success">
-      <div class="alert-icon">✓</div>
-      <div class="alert-content">
-        <h4>Capacidad Operativa Óptima</h4>
-        <p>El personal asignado tiene la capacidad suficiente para cubrir la tasa requerida.</p>
-      </div>
+    <div *ngIf="cargando && !resultado" class="loading-state">
+      <p>Calculando el personal óptimo y extrayendo el rendimiento de la base de datos...</p>
     </div>
 
-    <div class="roles-grid">
-      <div *ngFor="let rol of roles" class="role-card">
-        <div class="role-header">
-          <h4>{{ rol }}</h4>
-          <span class="badge" [class.badge-empty]="!resultado.asignaciones[rol]?.length">
-            {{ resultado.asignaciones[rol]?.length || 0 }} Asignados
-          </span>
+    <div *ngIf="resultado" class="fade-in">
+      <div class="info-glass-panel">
+        <div>
+          <h4>Información de Simulación ({{ especie }})</h4>
+          <p>Kilos proyectados: <strong>{{ kilos }} kg</strong> | Tiempo estimado: <strong>{{ tiempo }} horas</strong></p>
         </div>
+      </div>
+
+      <div *ngIf="resultado.deficitPersonal" class="glass-alert alert-warning">
+        <h4>Advertencia de Capacidad Operativa</h4>
+        <p>El personal disponible actual no es suficiente para procesar la carga en el tiempo estándar. Se recomienda extender la jornada a <strong>{{ resultado.horasRecomendadas }} horas fijas</strong>.</p>
+      </div>
+
+      <div *ngIf="resultado.advertenciaRendimiento" class="glass-alert alert-danger">
+        <h4>Advertencia de Rendimiento Subestándar</h4>
+        <p>Hay trabajadores asignados en este lote cuyo rendimiento promedio histórico está por debajo del estándar establecido para esta especie. Por favor, tome en cuenta este factor en la supervisión de planta.</p>
+      </div>
+
+      <div *ngIf="!resultado.deficitPersonal && !resultado.advertenciaRendimiento" class="glass-alert alert-success">
+        <h4>Capacidad Operativa Óptima</h4>
+        <p>El personal asignado cubre satisfactoriamente la tasa requerida para procesar esta carga.</p>
+      </div>
+
+      <div class="roles-grid">
+        <div *ngFor="let rol of roles" class="role-card card">
+          <div class="role-header">
+            <h4>{{ rol }}</h4>
+            <span class="badge" [class.badge-empty]="!resultado.asignaciones[rol]?.length">
+              {{ resultado.asignaciones[rol]?.length || 0 }} Asignados
+            </span>
+          </div>
+          <div class="table-container">
+            <table *ngIf="resultado.asignaciones[rol]?.length">
+              <thead>
+                <tr><th>DNI</th><th>Nombre Completo</th><th class="text-right">Rendimiento (kg/h)</th></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let t of resultado.asignaciones[rol]" [class.bajo-estandar]="t.bajoEstandar">
+                  <td>{{ t.dni }}</td>
+                  <td class="worker-name">
+                    {{ t.nombreCompleto }}
+                    <span *ngIf="t.bajoEstandar" class="estandar-tag">
+                      Bajo Estándar
+                    </span>
+                  </td>
+                  <td class="text-right font-semibold price-col">{{ t.rendimiento | number:'1.2-2' }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div *ngIf="!resultado.asignaciones[rol]?.length" class="no-workers">No hay personal asignado para este rol.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions-footer">
+        <button (click)="confirmarAsignacion()" class="btn-primary btn-save" [disabled]="enviando">
+          {{ enviando ? 'Confirmando...' : 'Confirmar y Guardar Asignación en Planta' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  
+  <div *ngIf="vistaActiva === 'ocupados'" class="fade-in">
+    <div *ngIf="cargandoActivas" class="loading-state">
+      <p>Cargando asignaciones activas desde el servidor...</p>
+    </div>
+
+    <div *ngIf="!cargandoActivas && asignacionesActivas.length === 0" class="empty-state">
+      <h3>No hay operarios ocupados</h3>
+      <p>Todo el personal operativo de planta se encuentra disponible en este momento.</p>
+    </div>
+
+    <div *ngIf="!cargandoActivas && asignacionesActivas.length > 0" class="fade-in active-list">
+      <div *ngFor="let asig of asignacionesActivas" class="asignacion-panel card">
+        
+        <div class="panel-header">
+          <div class="panel-info">
+            <span class="id-badge">
+              ASIGNACIÓN #{{ asig.id }}
+            </span>
+            <span class="especie-badge">
+              Especie: <strong class="text-primary">{{ asig.especie }}</strong>
+            </span>
+            <p class="meta-desc">
+              Kilos: <strong>{{ asig.kilos }} kg</strong> | Tiempo: <strong>{{ asig.tiempoObjetivo }}h</strong> | Registrado el: {{ asig.fechaRegistro }} | Por: <em>{{ asig.usuarioCreador }}</em>
+            </p>
+          </div>
+
+          <button (click)="irALiquidaciones(asig)" class="btn-primary btn-calculate">
+            Calcular Liquidaciones
+          </button>
+        </div>
+
+        <h5 class="panel-subtitle">Personal Asignado en este Lote ({{ asig.trabajadores.length }} trabajadores)</h5>
+        
         <div class="table-container">
-          <table *ngIf="resultado.asignaciones[rol]?.length">
+          <table>
             <thead>
-              <tr><th>DNI</th><th>Nombre Completo</th><th class="text-right">Rendimiento (kg/h)</th></tr>
+              <tr>
+                <th>DNI</th>
+                <th>Nombre Completo</th>
+                <th>Rol Operativo</th>
+                <th class="text-center" style="width: 120px;">Acción</th>
+              </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let t of resultado.asignaciones[rol]">
+              <tr *ngFor="let t of asig.trabajadores">
                 <td>{{ t.dni }}</td>
-                <td class="worker-name">{{ t.nombreCompleto }}</td>
-                <td class="text-right font-semibold">{{ t.rendimiento | number:'1.2-2' }}</td>
+                <td class="font-semibold">{{ t.nombreCompleto }}</td>
+                <td>
+                  <span class="rol-tag">{{ t.rolOperativo }}</span>
+                </td>
+                <td class="text-center">
+                  <button (click)="abrirModalLiberar(t.id)" class="btn-liberar">
+                    Liberar
+                  </button>
+                </td>
               </tr>
             </tbody>
           </table>
-          <div *ngIf="!resultado.asignaciones[rol]?.length" class="no-workers">No hay personal asignado para este rol.</div>
         </div>
       </div>
     </div>
+  </div>
+</div>
 
-    <div style="text-align: center; margin-top: 2rem;">
-      <button (click)="enviarALiquidaciones()" class="btn-liquidar" [disabled]="enviando">
-        {{ enviando ? 'Enviando...' : 'Enviar a Liquidación y Pagos →' }}
+
+<div *ngIf="mostrarModalLiberar" class="modal-liberar-overlay fade-in" (click)="cancelarModalLiberar()">
+  <div class="modal-liberar-card" (click)="$event.stopPropagation()">
+    <div class="modal-liberar-header">
+      <h3>Liberar Operario</h3>
+    </div>
+    <div class="modal-liberar-body">
+      <p>Ingresa los kilos procesados por el operario para registrar su liquidación y liberarlo de la asignación activa.</p>
+      <div class="campo" style="margin-top: 1.25rem;">
+        <label for="kilosLiberar">Kilos procesados</label>
+        <input
+          id="kilosLiberar"
+          type="number"
+          [(ngModel)]="kilosALiberar"
+          min="0.01"
+          step="0.1"
+          placeholder="Ej: 320.5"
+          (keyup.enter)="confirmarLiberacion()"
+        />
+      </div>
+    </div>
+    <div class="modal-liberar-footer">
+      <button class="btn-cancelar-liberar" (click)="cancelarModalLiberar()">Cancelar</button>
+      <button class="btn-confirmar-liberar" (click)="confirmarLiberacion()" [disabled]="!kilosALiberar || kilosALiberar <= 0">
+        Confirmar y Liberar
       </button>
     </div>
   </div>

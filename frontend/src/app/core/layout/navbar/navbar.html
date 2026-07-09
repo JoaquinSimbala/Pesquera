@@ -1,7 +1,7 @@
 <nav class="navbar">
   <div class="navbar-brand">
-    <img src="logoPesquera.svg" alt="Logo" class="logo"/>
-    <h1>PESQUERA - GESTION</h1>
+    <img src="logoPesquera.svg" alt="Logo" class="logo" />
+    <h1>TRAZAMAR</h1>
   </div>
 
   <ul class="nav-links" *ngIf="user().isAuthenticated">
@@ -15,8 +15,10 @@
     </ng-container>
 
     <ng-container *ngIf="user().role === 'SUPERVISOR'">
+      <li><a routerLink="/panel/gestion" routerLinkActive="active">Gestión de Negocio</a></li>
       <li><a routerLink="/panel/inventario" routerLinkActive="active">Inventario y Distribución</a></li>
       <li><a routerLink="/panel/calidad" routerLinkActive="active">Control de Calidad</a></li>
+      <li><a routerLink="/panel/auditorias" routerLinkActive="active">Auditoría de Actividades</a></li>
     </ng-container>
   </ul>
 

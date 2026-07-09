@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { PaginatedResponse } from './auditoria';
+import { environment } from '../../../environments/environment';
 
 export interface Costo {
   id: number;
@@ -22,6 +24,9 @@ export interface DatosCostos {
   costos: Costo[];
   resumen: ResumenCostos;
   categorias: string[];
+  totalPages?: number;
+  totalElements?: number;
+  currentPage?: number;
 }
 
 export interface NuevoCosto {
@@ -35,12 +40,12 @@ export interface NuevoCosto {
 @Injectable({ providedIn: 'root' })
 export class CostosService {
 
-  private readonly URL_BASE = 'http://localhost:8080/api/costos';
+  private readonly URL_BASE = `${environment.apiUrl}/costos`;
 
   constructor(private http: HttpClient) {}
 
-  obtenerDatos(): Observable<DatosCostos> {
-    return this.http.get<DatosCostos>(this.URL_BASE, { withCredentials: true });
+  obtenerDatos(page = 0, size = 10): Observable<DatosCostos> {
+    return this.http.get<DatosCostos>(`${this.URL_BASE}?page=${page}&size=${size}`, { withCredentials: true });
   }
 
   registrar(costo: NuevoCosto): Observable<any> {

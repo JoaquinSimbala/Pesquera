@@ -12,22 +12,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.empresa.pesquera.infra.security.AuditoriaService;
+
 @RestController
 @RequestMapping("/api/costos")
 public class CostoOperacionalApiController {
 
     private final CostoOperacionalService costoService;
+    private final AuditoriaService auditoriaService;
 
-    public CostoOperacionalApiController(CostoOperacionalService costoService) {
+    public CostoOperacionalApiController(CostoOperacionalService costoService, AuditoriaService auditoriaService) {
         this.costoService = costoService;
+        this.auditoriaService = auditoriaService;
     }
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> obtenerDatos() {
-        List<CostoOperacional> lista = costoService.listarCostos();
+    public ResponseEntity<Map<String, Object>> obtenerDatos(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        org.springframework.data.domain.Page<CostoOperacional> pageResult = costoService.listarCostos(pageable);
         CostoOperacionalService.ResumenCostos resumen = costoService.construirResumen();
 
-        List<Map<String, Object>> costos = lista.stream().map(c -> {
+        List<Map<String, Object>> costos = pageResult.getContent().stream().map(c -> {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("id", c.getId());
             item.put("categoria", c.getCategoria());
@@ -48,6 +56,9 @@ public class CostoOperacionalApiController {
         response.put("costos", costos);
         response.put("resumen", resumenMap);
         response.put("categorias", costoService.categorias());
+        response.put("totalPages", pageResult.getTotalPages());
+        response.put("totalElements", pageResult.getTotalElements());
+        response.put("currentPage", pageResult.getNumber());
 
         return ResponseEntity.ok(response);
     }
@@ -62,6 +73,9 @@ public class CostoOperacionalApiController {
             form.setFechaCosto(request.fechaCosto() != null ? request.fechaCosto() : LocalDate.now());
             form.setDescripcion(request.descripcion());
             costoService.registrarCosto(form);
+            auditoriaService.registrar("Registro de Costo", 
+                "Se registró un costo de S/ " + form.getMonto() + " en la categoría '" + form.getCategoria() + 
+                "' (Concepto: " + form.getConcepto() + ")");
             return ResponseEntity.ok(Map.of("mensaje", "Costo registrado correctamente."));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("mensaje", "No se pudo registrar el costo."));

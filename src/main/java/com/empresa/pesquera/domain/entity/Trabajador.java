@@ -10,12 +10,23 @@ public class Trabajador {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String nombreCompleto;
+
+    @Column(nullable = false, unique = true, length = 8)
     private String dni;
 
-    private String rolOperativo;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "rol_operativo_id", nullable = false)
+    private RolOperativo rolOperativo;
 
     private Boolean disponible;
+
+    private Double rendimientoPromedio;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
 
     public Long getId() {
         return id;
@@ -41,11 +52,11 @@ public class Trabajador {
         this.dni = dni;
     }
 
-    public String getRolOperativo() {
+    public RolOperativo getRolOperativo() {
         return rolOperativo;
     }
 
-    public void setRolOperativo(String rolOperativo) {
+    public void setRolOperativo(RolOperativo rolOperativo) {
         this.rolOperativo = rolOperativo;
     }
 
@@ -55,5 +66,21 @@ public class Trabajador {
 
     public void setDisponible(Boolean disponible) {
         this.disponible = disponible;
+    }
+
+    public Double getRendimientoPromedio() {
+        return rendimientoPromedio;
+    }
+
+    public void setRendimientoPromedio(Double rendimientoPromedio) {
+        this.rendimientoPromedio = rendimientoPromedio;
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
     }
 }

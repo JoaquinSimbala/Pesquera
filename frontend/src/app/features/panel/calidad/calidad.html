@@ -1,70 +1,77 @@
-<div class="calidad-container fade-in">
-  <h2>Módulo 06: Control de Calidad e Inocuidad (HACCP)</h2>
+<div class="modulo fade-in">
+  <div class="modulo-header">
+    <h2>Control de Calidad e Inocuidad (HACCP)</h2>
+    <p>Inspección sanitaria de lotes, límites críticos de temperatura y niveles de pH.</p>
+  </div>
 
-  <div *ngIf="metricas" style="margin-bottom: 2rem;">
+  <div *ngIf="metricas" class="seccion-metricas">
     <h3>Métricas Sanitarias y de Inocuidad</h3>
-    <div class="metrics-grid">
-      <div class="metric-card metric-card-aprobados">
-        <span class="label">Lotes Aprobados</span>
-        <span class="value">{{ metricas.aprobados }} ({{ metricas.aprobadosPct | number:'1.1-1' }}%)</span>
+    <div class="tarjetas">
+      <div class="tarjeta card-aprobados">
+        <span class="tarjeta-valor text-success">{{ metricas.aprobados }} ({{ metricas.aprobadosPct | number:'1.1-1' }}%)</span>
+        <span class="tarjeta-label">Lotes Aprobados</span>
       </div>
-      <div class="metric-card metric-card-observados">
-        <span class="label">Con Observación</span>
-        <span class="value">{{ metricas.observados }}</span>
+      <div class="tarjeta card-observados">
+        <span class="tarjeta-valor text-warning">{{ metricas.observados }}</span>
+        <span class="tarjeta-label">Con Observación</span>
       </div>
-      <div class="metric-card metric-card-rechazados">
-        <span class="label">Lotes Rechazados</span>
-        <span class="value">{{ metricas.rechazados }}</span>
+      <div class="tarjeta card-rechazados">
+        <span class="tarjeta-valor text-error">{{ metricas.rechazados }}</span>
+        <span class="tarjeta-label">Lotes Rechazados</span>
       </div>
-      <div class="metric-card metric-card-alertas" [class.alert-active]="metricas.alertasCriticas > 0">
-        <span class="label">Alertas Críticas<br>(HACCP)</span>
-        <span class="value">{{ metricas.alertasCriticas }}</span>
+      <div class="tarjeta card-alertas" [class.alert-active]="metricas.alertasCriticas > 0">
+        <span class="tarjeta-valor" [class.text-error]="metricas.alertasCriticas > 0">{{ metricas.alertasCriticas }}</span>
+        <span class="tarjeta-label">Alertas Críticas (HACCP)</span>
       </div>
     </div>
   </div>
 
-  <div class="form-section">
+  <div class="formulario-card card">
     <h3>Registrar Control Sanitario del Lote</h3>
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label for="loteReferencia">Código de Lote / Guía:</label>
-        <input type="text" id="loteReferencia" formControlName="loteReferencia" placeholder="Ej: L-202605" />
+      <div class="formulario-fila">
+        <div class="campo">
+          <label for="loteReferencia">Código de Lote / Guía</label>
+          <input type="text" id="loteReferencia" formControlName="loteReferencia" placeholder="Ej: L-202605" />
+        </div>
+        <div class="campo">
+          <label for="temperatura">Temperatura del Pescado (°C)</label>
+          <input type="number" id="temperatura" formControlName="temperatura" step="0.1" placeholder="Límite crítico: 4.5°C" />
+        </div>
+        <div class="campo">
+          <label for="ph">Nivel de pH</label>
+          <input type="number" id="ph" formControlName="ph" step="0.1" placeholder="Ej: 6.5 (Rango óptimo: 6.0 - 7.0)" />
+        </div>
+        <div class="campo">
+          <label for="estadoHaccp">Decisión HACCP</label>
+          <app-custom-select
+            id="estadoHaccp"
+            formControlName="estadoHaccp"
+            [options]="haccpOptions"
+            placeholder="Seleccione estado...">
+          </app-custom-select>
+        </div>
+        <div class="campo">
+          <label for="higienePersonal">Higiene del Personal</label>
+          <app-custom-select
+            id="higienePersonal"
+            formControlName="higienePersonal"
+            [options]="cumplimientoOptions"
+            placeholder="Seleccione cumplimiento...">
+          </app-custom-select>
+        </div>
+        <div class="campo">
+          <label for="limpiezaEquipos">Limpieza de Equipos y Planta</label>
+          <app-custom-select
+            id="limpiezaEquipos"
+            formControlName="limpiezaEquipos"
+            [options]="cumplimientoOptions"
+            placeholder="Seleccione cumplimiento...">
+          </app-custom-select>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="temperatura">Temperatura del Pescado (°C):</label>
-        <input type="number" id="temperatura" formControlName="temperatura" step="0.1" placeholder="Límite crítico: 4.5°C" />
-      </div>
-      <div class="form-group">
-        <label for="ph">Nivel de pH:</label>
-        <input type="number" id="ph" formControlName="ph" step="0.1" placeholder="Ej: 6.5 (Rango óptimo: 6.0 - 7.0)" />
-      </div>
-      <div class="form-group">
-        <label for="estadoHaccp">Decisión HACCP:</label>
-        <select id="estadoHaccp" formControlName="estadoHaccp">
-          <option value="">Seleccione estado...</option>
-          <option value="APROBADO">APROBADO</option>
-          <option value="CON OBSERVACIONES">CON OBSERVACIONES</option>
-          <option value="RECHAZADO">RECHAZADO</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="higienePersonal">Higiene del Personal:</label>
-        <select id="higienePersonal" formControlName="higienePersonal">
-          <option value="">Seleccione cumplimiento...</option>
-          <option value="true">Cumple</option>
-          <option value="false">No Cumple</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="limpiezaEquipos">Limpieza de Equipos y Planta:</label>
-        <select id="limpiezaEquipos" formControlName="limpiezaEquipos">
-          <option value="">Seleccione cumplimiento...</option>
-          <option value="true">Cumple</option>
-          <option value="false">No Cumple</option>
-        </select>
-      </div>
-      <div class="form-group col-span-all">
-        <label for="observaciones">Observaciones / Acciones Correctivas:</label>
+      <div class="campo campo-ancho" style="margin-bottom: 1.5rem;">
+        <label for="observaciones">Observaciones / Acciones Correctivas</label>
         <textarea id="observaciones" formControlName="observaciones" rows="3" placeholder="Detalle cualquier desvío de los límites críticos y acciones tomadas..."></textarea>
       </div>
       <button type="submit" [disabled]="form.invalid || isSaving" class="btn-primary">
@@ -73,9 +80,9 @@
     </form>
   </div>
 
-  <div class="history-section">
+  <div class="tabla-card card">
     <h3>Historial de Registro HACCP</h3>
-    <div class="table-container">
+    <div class="tabla-contenedor">
       <table>
         <thead>
           <tr>
@@ -91,14 +98,14 @@
         </thead>
         <tbody>
           <tr *ngFor="let cc of historial" [class.alert-row]="cc.estadoHaccp === 'RECHAZADO'">
-            <td style="white-space: nowrap; font-size: 0.85rem;">{{ cc.fechaRegistro }}</td>
+            <td style="white-space: nowrap; font-size: 0.85rem; color: #5c6f72;">{{ cc.fechaRegistro }}</td>
             <td class="font-semibold">{{ cc.loteReferencia }}</td>
-            <td class="text-center" [class.text-red]="cc.temperatura > 4.5">{{ cc.temperatura }}</td>
-            <td class="text-center" [class.text-red]="cc.ph < 6.0 || cc.ph > 7.0">{{ cc.ph }}</td>
-            <td class="text-center font-semibold" [ngClass]="cc.higienePersonal ? 'text-green' : 'text-red'">
+            <td class="text-center" [class.text-danger]="cc.temperatura > 4.5">{{ cc.temperatura }}</td>
+            <td class="text-center" [class.text-danger]="cc.ph < 6.0 || cc.ph > 7.0">{{ cc.ph }}</td>
+            <td class="text-center font-semibold" [class.text-success]="cc.higienePersonal" [class.text-danger]="!cc.higienePersonal">
               {{ cc.higienePersonal ? 'Cumple' : 'No Cumple' }}
             </td>
-            <td class="text-center font-semibold" [ngClass]="cc.limpiezaEquipos ? 'text-green' : 'text-red'">
+            <td class="text-center font-semibold" [class.text-success]="cc.limpiezaEquipos" [class.text-danger]="!cc.limpiezaEquipos">
               {{ cc.limpiezaEquipos ? 'Cumple' : 'No Cumple' }}
             </td>
             <td class="text-center">
@@ -108,13 +115,35 @@
                 {{ cc.estadoHaccp }}
               </span>
             </td>
-            <td style="font-size: 0.85rem; line-height: 1.2;">{{ cc.observaciones || '-' }}</td>
+            <td style="font-size: 0.85rem; line-height: 1.4; color: #5c6f72;">{{ cc.observaciones || '-' }}</td>
           </tr>
           <tr *ngIf="historial.length === 0 && !isLoading">
-            <td colspan="8" class="text-center" style="padding: 2rem;">No hay registros.</td>
+            <td colspan="8" class="text-center" style="padding: 3rem; color: #5c6f72;">No hay registros de control sanitario aún.</td>
           </tr>
         </tbody>
       </table>
     </div>
+
+    
+    <div class="tabla-paginador" *ngIf="!isLoading && totalElements > 0">
+      <div class="paginador-info">
+        Mostrando página <strong>{{ paginaActual + 1 }}</strong> de <strong>{{ totalPaginas }}</strong> (<strong>{{ totalElements }}</strong> registros en total)
+      </div>
+      <div class="paginador-controles">
+        <button 
+          class="btn-paginado" 
+          [disabled]="paginaActual === 0" 
+          (click)="anteriorPagina()">
+          Anterior
+        </button>
+        <button 
+          class="btn-paginado" 
+          [disabled]="paginaActual >= totalPaginas - 1" 
+          (click)="siguientePagina()">
+          Siguiente
+        </button>
+      </div>
+    </div>
+
   </div>
 </div>

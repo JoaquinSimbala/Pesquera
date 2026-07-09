@@ -32,15 +32,14 @@ public class SecurityConfig {
         httpSecurity.cors(Customizer.withDefaults());
 
         httpSecurity.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/login", "/css/**", "/js/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/asignacion/**").hasAnyRole("SUPERVISOR", "GERENTE")
                 .requestMatchers("/api/calidad/**").hasAnyRole("SUPERVISOR", "GERENTE")
+                .requestMatchers("/api/inventario/**").hasAnyRole("SUPERVISOR", "GERENTE")
+                .requestMatchers("/api/supervisor/**").hasRole("SUPERVISOR")
                 .requestMatchers("/api/liquidaciones/**").hasRole("GERENTE")
                 .requestMatchers("/api/costos/**").hasRole("GERENTE")
                 .requestMatchers("/api/gerente/**").hasRole("GERENTE")
-                .requestMatchers("/supervisor/**").hasRole("SUPERVISOR")
-                .requestMatchers("/gerente/**").hasRole("GERENTE")
                 .anyRequest().authenticated());
 
         httpSecurity.sessionManagement(session -> session

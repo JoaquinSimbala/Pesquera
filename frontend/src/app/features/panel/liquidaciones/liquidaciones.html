@@ -1,61 +1,137 @@
-<div class="modulo">
+<div class="modulo fade-in">
 
   <div class="modulo-header">
-    <h2>Módulo 3 — Liquidación y Pagos</h2>
+    <h2>Liquidación y Pagos</h2>
     <p>Gestiona y aprueba los pagos de los trabajadores según su producción diaria.</p>
   </div>
 
-  <div *ngIf="mensaje" class="alerta" [class.alerta-exito]="tipoMensaje === 'exito'" [class.alerta-error]="tipoMensaje === 'error'">
-    {{ mensaje }}
+  
+  <div *ngIf="esLoteAsignado && trabajadoresLote.length > 0" class="lote-glass-card fade-in">
+    <div class="lote-header">
+      <h3>Liquidación de Lote Activo (Especie: <span class="text-primary">{{ especie }}</span>)</h3>
+      <span class="lote-subtitle">Ingresa los kilos por etapa para distribuirlos equitativamente, o edita a los operarios de forma individual.</span>
+    </div>
+
+    
+    <div *ngFor="let rol of rolesEnLote" class="etapa-card">
+      <div class="etapa-header">
+        <h4>Etapa: {{ rol }}</h4>
+        <div class="etapa-distribuidor">
+          <label>Kilos Totales Etapa:</label>
+          <input type="number" 
+                 [(ngModel)]="kilosPorEtapa[rol]" 
+                 (ngModelChange)="distribuirKilosPorEtapa(rol)" 
+                 min="0.1" 
+                 placeholder="Ej: 900" 
+                 class="input-distribuir" />
+          <span class="num-trabajadores">(Se dividirá entre {{ obtenerTrabajadoresPorRolEnLote(rol).length }} operarios)</span>
+        </div>
+      </div>
+
+      <div class="tabla-contenedor">
+        <table>
+          <thead>
+            <tr>
+              <th>Operario</th>
+              <th class="text-right" style="width: 140px;">Tarifa / kg</th>
+              <th class="text-center" style="width: 200px;">Kilos Procesados</th>
+              <th class="text-right" style="width: 160px;">Monto Liquidado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of obtenerTrabajadoresPorRolEnLote(rol)">
+              <td class="font-semibold">{{ item.nombreCompleto }}</td>
+              <td class="text-right price-col">
+                S/ {{ (tarifas[item.rolOperativo] || 0) | number:'1.2-2' }}
+              </td>
+              <td class="text-center">
+                <input type="number" 
+                       [(ngModel)]="item.kilosProcesados" 
+                       (ngModelChange)="recalcularFila(item)" 
+                       min="0.1" 
+                       step="0.1" 
+                       placeholder="Ingresar kg" 
+                       class="input-kilos" />
+              </td>
+              <td class="text-right price-col font-bold">
+                S/ {{ item.montoTotal | number:'1.2-2' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="lote-acciones">
+      <button class="btn-primary btn-save" (click)="registrarLoteAsignado()">
+        Registrar Liquidaciones del Lote
+      </button>
+      <button class="btn-secundario" (click)="cancelarLote()">
+        Cancelar Lote
+      </button>
+    </div>
   </div>
 
-  <!-- Tarjetas de resumen -->
-  <div *ngIf="resumen" class="tarjetas">
-    <div class="tarjeta">
-      <span class="tarjeta-valor">{{ resumen.totalRegistros }}</span>
-      <span class="tarjeta-label">Total Registros</span>
+  
+  <div *ngIf="resumen" class="resumen-grid">
+    <div class="resumen-card card">
+      <span class="resumen-valor">{{ resumen.totalRegistros }}</span>
+      <span class="resumen-label">Total Registros</span>
     </div>
-    <div class="tarjeta tarjeta-amarilla">
-      <span class="tarjeta-valor">{{ resumen.pendientesAprobacion }}</span>
-      <span class="tarjeta-label">Pendientes</span>
+    <div class="resumen-card card card-amarilla">
+      <span class="resumen-valor">{{ resumen.pendientesAprobacion }}</span>
+      <span class="resumen-label">Pendientes</span>
     </div>
-    <div class="tarjeta tarjeta-verde">
-      <span class="tarjeta-valor">S/ {{ resumen.montoAprobado | number:'1.2-2' }}</span>
-      <span class="tarjeta-label">Monto Aprobado</span>
+    <div class="resumen-card card card-verde">
+      <span class="resumen-valor">S/ {{ resumen.montoTotal | number:'1.2-2' }}</span>
+      <span class="resumen-label">Monto Proyectado</span>
     </div>
-    <div class="tarjeta tarjeta-naranja">
-      <span class="tarjeta-valor">S/ {{ resumen.montoPendiente | number:'1.2-2' }}</span>
-      <span class="tarjeta-label">Monto Pendiente</span>
+    <div class="resumen-card card card-verde">
+      <span class="resumen-valor">S/ {{ resumen.montoAprobado | number:'1.2-2' }}</span>
+      <span class="resumen-label">Monto Aprobado</span>
     </div>
   </div>
 
-  <div class="acciones">
-    <button class="btn-primario" (click)="mostrarFormulario = !mostrarFormulario">
-      {{ mostrarFormulario ? 'Cancelar' : '+ Registrar Liquidación Manual' }}
+  
+  <div class="header-acciones" *ngIf="!esLoteAsignado">
+    <button class="btn-primary" (click)="mostrarFormulario = true" *ngIf="!mostrarFormulario">
+      Registrar Liquidación Manual
     </button>
   </div>
 
-  <!-- Formulario -->
-  <div *ngIf="mostrarFormulario" class="formulario-card">
-    <h3>Nueva Liquidación</h3>
+  
+  <div *ngIf="mostrarFormulario" class="formulario-card card fade-in">
+    <h3>Nueva Liquidación Manual</h3>
     <div class="formulario-fila">
 
       <div class="campo">
+        <label>Especie Procesada</label>
+        <app-custom-select
+          [options]="especiesOptions"
+          [(ngModel)]="especieSeleccionada"
+          (ngModelChange)="actualizarTarifaManual()"
+          placeholder="-- Selecciona una especie --">
+        </app-custom-select>
+      </div>
+
+      <div class="campo">
         <label>Rol del trabajador</label>
-        <select [(ngModel)]="rolSeleccionado" (ngModelChange)="trabajadorSeleccionado = null">
-          <option value="">-- Selecciona un rol --</option>
-          <option *ngFor="let rol of roles" [value]="rol">{{ rol }}</option>
-        </select>
+        <app-custom-select
+          [options]="rolesOptions"
+          [(ngModel)]="rolSeleccionado"
+          (ngModelChange)="trabajadorSeleccionado = null"
+          placeholder="-- Selecciona un rol --">
+        </app-custom-select>
       </div>
 
       <div class="campo">
         <label>Trabajador</label>
-        <select [(ngModel)]="trabajadorSeleccionado" [disabled]="!rolSeleccionado">
-          <option [ngValue]="null">-- Selecciona un trabajador --</option>
-          <option *ngFor="let t of trabajadoresDelRol" [ngValue]="t.id">
-            {{ t.nombre }} — {{ t.dni }}
-          </option>
-        </select>
+        <app-custom-select
+          [options]="trabajadoresOptions"
+          [(ngModel)]="trabajadorSeleccionado"
+          [disabled]="!rolSeleccionado"
+          placeholder="-- Selecciona un trabajador --">
+        </app-custom-select>
       </div>
 
       <div class="campo">
@@ -66,19 +142,19 @@
     </div>
 
     <div *ngIf="rolSeleccionado" class="formulario-info">
-      <span>Tarifa: <strong>S/ {{ tarifaDelRol | number:'1.2-2' }} / kg</strong></span>
+      <span>Tarifa Aplicada: <strong class="text-primary">S/ {{ tarifaDelRolManual | number:'1.2-2' }} / kg</strong></span>
       <span>Monto estimado: <strong class="monto-grande">S/ {{ montoEstimado | number:'1.2-2' }}</strong></span>
     </div>
 
     <div class="formulario-botones">
-      <button class="btn-primario" (click)="registrar()">Registrar</button>
+      <button class="btn-primary" (click)="registrar()">Registrar</button>
       <button class="btn-secundario" (click)="resetFormulario()">Cancelar</button>
     </div>
   </div>
 
-  <!-- Tabla -->
-  <div class="tabla-card">
-    <h3>Registro de Liquidaciones</h3>
+  
+  <div class="tabla-card card">
+    <h3>Historial de Liquidaciones</h3>
 
     <div *ngIf="cargando" class="estado-pantalla">Cargando datos...</div>
 
@@ -98,31 +174,54 @@
             <th>Monto Total</th>
             <th>Fecha</th>
             <th>Estado</th>
-            <th>Acción</th>
+            <th class="text-center" style="width: 130px;">Acción</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let liq of liquidaciones; let i = index" [class.fila-aprobada]="liq.aprobado">
             <td>{{ i + 1 }}</td>
-            <td>{{ liq.trabajadorNombre }}</td>
-            <td>{{ liq.trabajadorRol }}</td>
+            <td class="font-semibold">{{ liq.trabajadorNombre }}</td>
+            <td>
+              <span class="rol-tag">{{ liq.trabajadorRol }}</span>
+            </td>
             <td>{{ liq.kilosProcesados | number:'1.1-1' }} kg</td>
             <td>S/ {{ liq.tarifaPorKilo | number:'1.2-2' }}</td>
-            <td><strong>S/ {{ liq.montoTotal | number:'1.2-2' }}</strong></td>
-            <td>{{ liq.fechaProduccion }}</td>
+            <td class="font-bold price-col">S/ {{ liq.montoTotal | number:'1.2-2' }}</td>
+            <td style="font-size: 0.85rem; white-space: nowrap;">{{ liq.fechaProduccion }}</td>
             <td>
               <span class="badge" [class.badge-verde]="liq.aprobado" [class.badge-amarillo]="!liq.aprobado">
                 {{ liq.aprobado ? 'Aprobado' : 'Pendiente' }}
               </span>
             </td>
-            <td>
+            <td class="text-center">
               <button class="btn-aprobar" (click)="aprobar(liq.id)" [disabled]="liq.aprobado">
-                {{ liq.aprobado ? '✓ Aprobado' : 'Aprobar' }}
+                {{ liq.aprobado ? 'Aprobado' : 'Aprobar' }}
               </button>
             </td>
           </tr>
         </tbody>
       </table>
+    </div>
+
+    
+    <div class="tabla-paginador" *ngIf="!cargando && totalElementos > 0">
+      <div class="paginador-info">
+        Mostrando página <strong>{{ paginaActual + 1 }}</strong> de <strong>{{ totalPaginas }}</strong> (<strong>{{ totalElementos }}</strong> registros en total)
+      </div>
+      <div class="paginador-controles">
+        <button 
+          class="btn-paginado" 
+          [disabled]="paginaActual === 0" 
+          (click)="anteriorPagina()">
+          Anterior
+        </button>
+        <button 
+          class="btn-paginado" 
+          [disabled]="paginaActual >= totalPaginas - 1" 
+          (click)="siguientePagina()">
+          Siguiente
+        </button>
+      </div>
     </div>
 
   </div>

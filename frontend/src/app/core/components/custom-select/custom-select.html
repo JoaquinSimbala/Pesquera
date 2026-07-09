@@ -1,0 +1,39 @@
+<div class="cs-wrapper" [class.cs-open]="isOpen()" [class.cs-disabled]="disabled">
+
+  
+  <button
+    type="button"
+    class="cs-trigger"
+    (click)="toggle()"
+    [attr.aria-expanded]="isOpen()"
+    [attr.aria-haspopup]="'listbox'"
+  >
+    <span class="cs-value" [class.cs-placeholder]="!selectedLabel">
+      {{ selectedLabel || placeholder }}
+    </span>
+    <svg class="cs-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9"></polyline>
+    </svg>
+  </button>
+
+  
+  <div class="cs-panel" role="listbox" *ngIf="isOpen()">
+    <div class="cs-options-scroll">
+      <button
+        *ngFor="let opt of options"
+        type="button"
+        class="cs-option"
+        [class.cs-option-selected]="isSelected(opt)"
+        (click)="select(opt)"
+        role="option"
+        [attr.aria-selected]="isSelected(opt)"
+      >
+        <span class="cs-option-label">{{ opt.label }}</span>
+        <svg *ngIf="isSelected(opt)" class="cs-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,125 @@
+<div class="modulo fade-in">
+
+  <div class="modulo-header">
+    <h2>Auditoría de Actividades</h2>
+    <p>Visualiza el historial completo de operaciones y cambios de estado efectuados por los usuarios en la plataforma.</p>
+  </div>
+
+  
+  <div class="formulario-card card">
+    <h3>Filtros de Búsqueda</h3>
+    <div class="formulario-fila">
+      <div class="campo">
+        <label for="filtroUsuario">Filtrar por Usuario</label>
+        <app-custom-select
+          id="filtroUsuario"
+          [options]="usuariosOptions"
+          [ngModel]="usuarioSeleccionadoId"
+          (ngModelChange)="onUsuarioChange($event)"
+          placeholder="Selecciona un usuario...">
+        </app-custom-select>
+      </div>
+
+      <div class="campo">
+        <label for="filtroRango">Período de Tiempo</label>
+        <app-custom-select
+          id="filtroRango"
+          [options]="rangoOptions"
+          [ngModel]="rangoFecha"
+          (ngModelChange)="onRangoChange($event)"
+          placeholder="Selecciona período...">
+        </app-custom-select>
+      </div>
+
+      <div class="campo" *ngIf="rangoFecha === 'especifica'">
+        <label for="fechaEspecifica">Fecha Específica</label>
+        <input
+          id="fechaEspecifica"
+          type="date"
+          [ngModel]="fechaEspecifica"
+          (ngModelChange)="onFechaEspecificaChange($event)" />
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="tabla-card card">
+    <div class="tabla-header">
+      <h3>Registro de Acciones</h3>
+      <span class="contador-registros" *ngIf="!cargando">
+        Total: <strong>{{ auditoriasFiltradas.length }}</strong> actividades encontradas
+      </span>
+    </div>
+
+    <div class="estado-pantalla" *ngIf="cargando">
+      <div class="loader-glass"></div>
+      <p>Cargando registros de actividades...</p>
+    </div>
+
+    <div class="tabla-contenedor" *ngIf="!cargando">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 15%;">Usuario</th>
+            <th style="width: 15%;">Rol</th>
+            <th style="width: 20%;">Acción</th>
+            <th style="width: 32%;">Detalles</th>
+            <th style="width: 18%;" class="text-right">Fecha y Hora</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="auditoriasFiltradas.length === 0">
+            <td colspan="5" class="text-center table-empty">
+              No se encontraron registros de auditoría para los filtros aplicados.
+            </td>
+          </tr>
+          <tr *ngFor="let act of auditoriasFiltradas" class="fila-actividad">
+            <td class="col-username font-semibold">
+              {{ act.usuario.username }}
+            </td>
+            <td>
+              <span class="badge-rol" [ngClass]="{
+                'badge-gerente': act.usuario.rol === 'GERENTE',
+                'badge-supervisor': act.usuario.rol === 'SUPERVISOR'
+              }">
+                {{ act.usuario.rol }}
+              </span>
+            </td>
+            <td class="col-accion">
+              {{ act.accion }}
+            </td>
+            <td class="col-detalle">
+              {{ act.detalle }}
+            </td>
+            <td class="text-right col-fecha font-semibold">
+              {{ act.fecha | date:'dd/MM/yyyy — HH:mm:ss' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    
+    <div class="tabla-paginador" *ngIf="!cargando && totalElementos > 0">
+      <div class="paginador-info">
+        Mostrando página <strong>{{ paginaActual + 1 }}</strong> de <strong>{{ totalPaginas }}</strong> (<strong>{{ totalElementos }}</strong> registros en total)
+      </div>
+      <div class="paginador-controles">
+        <button 
+          class="btn-paginado" 
+          [disabled]="paginaActual === 0" 
+          (click)="anteriorPagina()">
+          Anterior
+        </button>
+        <button 
+          class="btn-paginado" 
+          [disabled]="paginaActual >= totalPaginas - 1" 
+          (click)="siguientePagina()">
+          Siguiente
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</div>

@@ -6,6 +6,8 @@ import com.empresa.pesquera.domain.entity.InventarioDistribucion;
 import com.empresa.pesquera.domain.entity.LoteProduccion;
 import com.empresa.pesquera.infra.persistence.InventarioDistribucionRepository;
 import com.empresa.pesquera.infra.persistence.LoteProduccionRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,8 +79,8 @@ public class InventarioService {
         distribucionRepository.save(inv);
     }
 
-    public List<InventarioDistribucion> listarHistorial() {
-        return distribucionRepository.findAllByOrderByFechaRegistroDesc();
+    public Page<InventarioDistribucion> listarHistorial(Pageable pageable) {
+        return distribucionRepository.findAllByOrderByFechaRegistroDesc(pageable);
     }
 
     public Map<String, Double> obtenerResumenMetricas() {

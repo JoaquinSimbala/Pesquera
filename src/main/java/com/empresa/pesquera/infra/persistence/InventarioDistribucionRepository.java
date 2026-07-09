@@ -8,9 +8,12 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 public interface InventarioDistribucionRepository extends JpaRepository<InventarioDistribucion, Long> {
 
-    List<InventarioDistribucion> findAllByOrderByFechaRegistroDesc();
+    Page<InventarioDistribucion> findAllByOrderByFechaRegistroDesc(Pageable pageable);
 
     @Query("SELECT COALESCE(SUM(i.kilosTotales), 0) FROM InventarioDistribucion i WHERE i.destino = :destino AND i.fechaRegistro >= :fecha")
     Double sumarKilosPorDestinoYFecha(@Param("destino") String destino, @Param("fecha") LocalDate fecha);

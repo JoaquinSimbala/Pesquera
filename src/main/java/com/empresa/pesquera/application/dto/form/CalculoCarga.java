@@ -15,6 +15,17 @@ public class CalculoCarga {
     @DecimalMax(value = "24.0", message = "El tiempo objetivo no puede superar 24 horas.")
     private Double tiempoObjetivo;
 
+    @NotNull(message = "La especie es obligatoria.")
+    private String especie;
+
+    public String getEspecie() {
+        return especie;
+    }
+
+    public void setEspecie(String especie) {
+        this.especie = especie;
+    }
+
     public Double getKilos() {
         return kilos;
     }

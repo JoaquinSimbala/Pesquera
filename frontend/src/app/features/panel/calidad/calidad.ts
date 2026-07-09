@@ -3,27 +3,45 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { CalidadService, ControlCalidad, CalidadMetricas } from '../../../core/services/calidad';
+import { DialogoService } from '../../../core/services/dialogo';
+import { CustomSelect, SelectOption } from '../../../core/components/custom-select/custom-select';
 
 @Component({
   selector: 'app-calidad',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, CustomSelect],
   templateUrl: './calidad.html',
   styleUrl: './calidad.scss',
 })
 export class Calidad implements OnInit {
+
+  haccpOptions: SelectOption[] = [
+    { value: 'APROBADO', label: 'APROBADO' },
+    { value: 'CON OBSERVACIONES', label: 'CON OBSERVACIONES' },
+    { value: 'RECHAZADO', label: 'RECHAZADO' }
+  ];
+
+  cumplimientoOptions: SelectOption[] = [
+    { value: true, label: 'Cumple' },
+    { value: false, label: 'No Cumple' }
+  ];
 
   form: FormGroup;
   metricas: CalidadMetricas | null = null;
   historial: ControlCalidad[] = [];
   isLoading = false;
   isSaving = false;
-  errorMessage = '';
-  successMessage = '';
+
+  
+  paginaActual = 0;
+  elementosPorPagina = 10;
+  totalElements = 0;
+  totalPaginas = 0;
 
   constructor(
     private fb: FormBuilder,
     private calidadService: CalidadService,
+    private dialogoService: DialogoService,
     private cdr: ChangeDetectorRef
   ) {
     this.form = this.fb.group({
@@ -43,30 +61,53 @@ export class Calidad implements OnInit {
 
   cargarDatos(): void {
     this.isLoading = true;
-    forkJoin({
-      metricas: this.calidadService.getMetricas(),
-      historial: this.calidadService.getHistorial()
-    }).subscribe({
+    this.calidadService.getMetricas().subscribe({
       next: (datos) => {
-        this.metricas = datos.metricas;
-        this.historial = datos.historial;
+        this.metricas = datos;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        console.error('Error cargando métricas de calidad');
+      }
+    });
+    this.cargarHistorial();
+  }
+
+  cargarHistorial(): void {
+    this.calidadService.getHistorial(this.paginaActual, this.elementosPorPagina).subscribe({
+      next: (res) => {
+        this.historial = res.content || [];
+        this.totalPaginas = res.totalPages || 0;
+        this.totalElements = res.totalElements || 0;
         this.isLoading = false;
         this.cdr.detectChanges();
       },
       error: () => {
-        this.errorMessage = 'Error al cargar los datos de calidad.';
+        this.dialogoService.error('Error de Carga', 'Error al cargar el historial de calidad.');
         this.isLoading = false;
         this.cdr.detectChanges();
       }
     });
   }
 
+  siguientePagina(): void {
+    if (this.paginaActual < this.totalPaginas - 1) {
+      this.paginaActual++;
+      this.cargarHistorial();
+    }
+  }
+
+  anteriorPagina(): void {
+    if (this.paginaActual > 0) {
+      this.paginaActual--;
+      this.cargarHistorial();
+    }
+  }
+
   onSubmit(): void {
     if (this.form.invalid) return;
 
     this.isSaving = true;
-    this.errorMessage = '';
-    this.successMessage = '';
 
     const rawVal = this.form.value;
     const cleanForm: ControlCalidad = {
@@ -81,7 +122,7 @@ export class Calidad implements OnInit {
 
     this.calidadService.registrarControl(cleanForm).subscribe({
       next: () => {
-        this.successMessage = 'Control de calidad registrado correctamente.';
+        this.dialogoService.exito('Control Registrado', 'Control de calidad registrado correctamente.');
         this.form.reset({
           loteReferencia: '',
           temperatura: null,
@@ -92,11 +133,13 @@ export class Calidad implements OnInit {
           observaciones: ''
         });
         this.isSaving = false;
+        this.paginaActual = 0;
         this.cdr.detectChanges();
         this.cargarDatos();
       },
       error: (err) => {
-        this.errorMessage = err.error?.message || 'Error al guardar el control sanitario.';
+        const msg = err.error?.message || 'Error al guardar el control sanitario.';
+        this.dialogoService.error('Error al Guardar', msg);
         this.isSaving = false;
         this.cdr.detectChanges();
       }

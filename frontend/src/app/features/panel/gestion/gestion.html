@@ -1,0 +1,461 @@
+<div class="gestion-container fade-in">
+
+  
+  <div class="gestion-header">
+    <div class="header-info">
+      <h2>Panel de Gestión Centralizada</h2>
+      <p>Monitoreo unificado de indicadores de negocio, control de calidad, distribución y reportes finales.</p>
+    </div>
+  </div>
+
+  
+  <div class="card report-selector-card">
+    <div class="selector-card-header">
+      <div class="selector-card-title">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="card-title-icon">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+        <h3>Generación de Reportes Consolidados</h3>
+      </div>
+      <span class="selector-card-subtitle">Configura el alcance temporal para compilar las métricas operativas</span>
+    </div>
+    
+    <div class="selector-grid">
+      <div class="selector-group">
+        <label for="tipoReporte">Rango de Tiempo</label>
+        <app-custom-select
+          [ngModel]="tipoReporte()"
+          (ngModelChange)="onTipoChange($event)"
+          [options]="tipoOptions"
+          placeholder="Selecciona rango de tiempo">
+        </app-custom-select>
+      </div>
+
+      <div class="selector-group" *ngIf="tipoReporte() !== 'historico'">
+        <label for="anioReporte">Año</label>
+        <app-custom-select
+          [ngModel]="anioReporte()"
+          (ngModelChange)="onAnioChange($event)"
+          [options]="anioOptions"
+          placeholder="Selecciona año">
+        </app-custom-select>
+      </div>
+
+      <div class="selector-group" *ngIf="tipoReporte() === 'trimestre'">
+        <label for="trimestreReporte">Trimestre</label>
+        <app-custom-select
+          [ngModel]="trimestreReporte()"
+          (ngModelChange)="onTrimestreChange($event)"
+          [options]="trimestreOptions"
+          placeholder="Selecciona trimestre">
+        </app-custom-select>
+      </div>
+
+      <div class="selector-group" *ngIf="tipoReporte() === 'mes'">
+        <label for="mesReporte">Mes</label>
+        <app-custom-select
+          [ngModel]="mesReporte()"
+          (ngModelChange)="onMesChange($event)"
+          [options]="mesOptions"
+          placeholder="Selecciona mes">
+        </app-custom-select>
+      </div>
+
+      <div class="selector-group action-group">
+        <button (click)="abrirReporte()" class="btn-primary btn-reporte">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+          Generar Reporte
+        </button>
+      </div>
+    </div>
+  </div>
+
+  
+  <div *ngIf="cargando()" class="estado-pantalla" style="padding: 4rem; text-align: center;">
+    <p>Consolidando información de todos los módulos...</p>
+  </div>
+
+  
+  <div *ngIf="errorMsg() && !cargando()" class="glass-alert alert-danger">
+    <h4>Error de Carga</h4>
+    <p>{{ errorMsg() }}</p>
+    <button (click)="cargarDashboard()" class="btn-secundario" style="margin-top: 0.75rem;">Reintentar</button>
+  </div>
+
+  
+  <div *ngIf="!cargando() && !errorMsg() && dashboardData() as data" class="kpi-grid">
+
+    
+    <section class="kpi-card card">
+      <div class="kpi-header">
+        <div class="kpi-icon-wrap kpi-icon-green">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <h3>Producción y Almacén</h3>
+      </div>
+      <div class="kpi-body">
+        <div class="metric-row">
+          <span class="label">Procesado Total</span>
+          <span class="value">{{ data.produccion.kilosProcesados | number:'1.2-2' }} kg</span>
+        </div>
+        <div class="metric-row">
+          <span class="label">Total Distribuido</span>
+          <span class="value color-success">{{ data.produccion.kilosDistribuidos | number:'1.2-2' }} kg</span>
+        </div>
+        <div class="metric-row">
+          <span class="label">Stock en Almacén</span>
+          <span class="value">{{ data.produccion.stockEnAlmacen | number:'1.2-2' }} kg</span>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-track">
+            <div class="progress-fill" [style.width.%]="(data.produccion.kilosDistribuidos / data.produccion.kilosProcesados) * 100"></div>
+          </div>
+          <span class="progress-label">{{ ((data.produccion.kilosDistribuidos / data.produccion.kilosProcesados) * 100) | number:'1.0-1' }}% Distribuido</span>
+        </div>
+      </div>
+    </section>
+
+    
+    <section class="kpi-card card">
+      <div class="kpi-header">
+        <div class="kpi-icon-wrap" [ngClass]="data.calidad.alertasCriticas > 0 ? 'kpi-icon-red' : 'kpi-icon-green'">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <h3>Control de Calidad</h3>
+      </div>
+      <div class="kpi-body">
+        <div class="metric-row">
+          <span class="label">Tasa de Aprobación</span>
+          <span class="value value-xl" [class.color-success]="data.calidad.tasaAprobacion >= 80" [class.color-warning]="data.calidad.tasaAprobacion < 80">
+            {{ data.calidad.tasaAprobacion | number:'1.1-1' }}%
+          </span>
+        </div>
+        <div class="mini-grid">
+          <div class="mini-item">
+            <span class="sub-label">Evaluados</span>
+            <span class="sub-value">{{ data.calidad.totalControles }}</span>
+          </div>
+          <div class="mini-item">
+            <span class="sub-label">Aprobados</span>
+            <span class="sub-value color-success">{{ data.calidad.aprobados }}</span>
+          </div>
+          <div class="mini-item">
+            <span class="sub-label">Alertas</span>
+            <span class="sub-value" [class.color-danger]="data.calidad.alertasCriticas > 0">{{ data.calidad.alertasCriticas }}</span>
+          </div>
+        </div>
+        <div class="promedios">
+          <span>Temp. Prom.: <strong>{{ data.calidad.temperaturaPromedio | number:'1.1-2' }} °C</strong></span>
+          <span>pH Prom.: <strong>{{ data.calidad.phPromedio | number:'1.1-2' }}</strong></span>
+        </div>
+      </div>
+    </section>
+
+    
+    <section class="kpi-card card">
+      <div class="kpi-header">
+        <div class="kpi-icon-wrap kpi-icon-amber">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="1" x2="12" y2="23"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+        </div>
+        <h3>Costos Operacionales</h3>
+      </div>
+      <div class="kpi-body">
+        <div class="metric-row">
+          <span class="label">Costo Total Acumulado</span>
+          <span class="value value-xl color-warning">S/ {{ data.costos.totalGeneral | number:'1.2-2' }}</span>
+        </div>
+        <div class="category-bars">
+          <div *ngFor="let cat of obtenerCategoriasCosto()" class="cat-row">
+            <div class="cat-info">
+              <span class="cat-name">{{ cat }}</span>
+              <span class="cat-amount">S/ {{ obtenerValorCategoriaCosto(cat) | number:'1.2-2' }}</span>
+            </div>
+            <div class="mini-bar-track">
+              <div class="mini-bar-fill" [style.width.%]="obtenerPorcentajeCosto(cat)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    
+    <section class="kpi-card card">
+      <div class="kpi-header">
+        <div class="kpi-icon-wrap kpi-icon-slate">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+            <line x1="7" y1="12" x2="17" y2="12"></line>
+          </svg>
+        </div>
+        <h3>Liquidación y Pagos</h3>
+      </div>
+      <div class="kpi-body">
+        <div class="metric-row">
+          <span class="label">Total Nóminas</span>
+          <span class="value">S/ {{ data.liquidaciones.montoTotal | number:'1.2-2' }}</span>
+        </div>
+        <div class="metric-row">
+          <span class="label">Monto Aprobado</span>
+          <span class="value color-success">S/ {{ data.liquidaciones.montoAprobado | number:'1.2-2' }}</span>
+        </div>
+        <div class="metric-row">
+          <span class="label">Monto Pendiente</span>
+          <span class="value color-warning">S/ {{ data.liquidaciones.montoPendiente | number:'1.2-2' }}</span>
+        </div>
+        <div class="pending-badge-row">
+          <span class="badge" [class.badge-warning]="data.liquidaciones.cantidadPendientes > 0" [class.badge-success]="data.liquidaciones.cantidadPendientes === 0">
+            {{ data.liquidaciones.cantidadPendientes }} planillas pendientes de aprobación
+          </span>
+        </div>
+      </div>
+    </section>
+
+    
+    <section class="kpi-card card span-full">
+      <div class="kpi-header">
+        <h3>Distribución de Envíos por Destino</h3>
+      </div>
+      <div class="kpi-body">
+        <div class="destinos-chart">
+          <div *ngFor="let dest of obtenerDestinosProduccion()" class="destino-row">
+            <span class="destino-label">{{ dest }}</span>
+            <div class="bar-track">
+              <div class="bar-fill" [style.width.%]="obtenerPorcentajeDestino(dest)"></div>
+              <span class="bar-text">{{ obtenerValorDestino(dest) | number:'1.1-1' }} kg &nbsp;({{ obtenerPorcentajeDestino(dest) | number:'1.0-0' }}%)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  
+  <div *ngIf="mostrarReporteModal()" class="modal-overlay fade-in" (click)="cerrarReporte()">
+    <div class="modal-card modal-large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Reporte Final de Negocio</h3>
+        <button (click)="cerrarReporte()" class="btn-close-x">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="cargandoReporte()" class="estado-pantalla" style="padding: 3rem;">
+          Compilando datos y formateando el reporte...
+        </div>
+        
+        <div id="reporte-imprimible" *ngIf="!cargandoReporte() && reporteData() as r">
+          <div class="report-header-print">
+            <div class="report-title-print">
+              <h1>Reporte de Negocio y Supervisión</h1>
+              <p>Alcance Temporal: {{ r.rangoTexto }}</p>
+            </div>
+            <div class="report-meta-print">
+              <div>Fecha Emisión: {{ fechaEmision() }}</div>
+              <div>Generado por: Supervisor de Planta</div>
+              <div>Pesquera S.A.C.</div>
+            </div>
+          </div>
+          
+          
+          <div class="report-section-print">
+            <h2>1. Producción e Inventario</h2>
+            
+            <div class="stat-grid-print">
+              <div class="stat-card-print">
+                <div class="stat-label-print">Ingreso Kilos Procesados</div>
+                <div class="stat-value-print">{{ r.produccion.kilosProcesados | number:'1.2-2' }} kg</div>
+              </div>
+              <div class="stat-card-print">
+                <div class="stat-label-print">Salida Kilos Distribuidos</div>
+                <div class="stat-value-print success">{{ r.produccion.kilosDistribuidos | number:'1.2-2' }} kg</div>
+              </div>
+              <div class="stat-card-print">
+                <div class="stat-label-print">Stock Actual en Almacén</div>
+                <div class="stat-value-print">{{ r.produccion.stockEnAlmacen | number:'1.2-2' }} kg</div>
+              </div>
+            </div>
+            
+            
+            <h3 class="section-sub-title">Distribución de Envíos por Destino</h3>
+            <table class="report-table">
+              <thead>
+                <tr>
+                  <th>Destino Comercial</th>
+                  <th>Kilos Despachados</th>
+                  <th>Porcentaje de Envíos</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let dest of obtenerReporteDestinosProduccion()">
+                  <td><strong>{{ dest }}</strong></td>
+                  <td>{{ obtenerReporteValorDestino(dest) | number:'1.2-2' }} kg</td>
+                  <td>
+                    <div class="chart-bar-container">
+                      <div class="chart-bar-bg">
+                        <div class="chart-bar-fill" [style.width.%]="obtenerReportePorcentajeDestino(dest)"></div>
+                      </div>
+                      <span class="chart-bar-value">{{ obtenerReportePorcentajeDestino(dest) | number:'1.0-1' }}%</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="obtenerReporteDestinosProduccion().length === 0">
+                  <td colspan="3" class="text-muted" style="text-align: center; padding: 1.5rem;">No se registran envíos en este periodo.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          
+          <div class="report-section-print">
+            <h2>2. Control de Calidad y Normas HACCP</h2>
+            
+            <div class="stat-grid-print">
+              <div class="stat-card-print">
+                <div class="stat-label-print">Muestras Evaluadas</div>
+                <div class="stat-value-print">{{ r.calidad.totalControles }}</div>
+              </div>
+              <div class="stat-card-print">
+                <div class="stat-label-print">Tasa de Aprobación</div>
+                <div class="stat-value-print" [class.success]="r.calidad.tasaAprobacion >= 80" [class.warning]="r.calidad.tasaAprobacion < 80 && r.calidad.tasaAprobacion > 50" [class.danger]="r.calidad.tasaAprobacion <= 50">
+                  {{ r.calidad.tasaAprobacion | number:'1.1-2' }}%
+                </div>
+              </div>
+              <div class="stat-card-print">
+                <div class="stat-label-print">Alertas Críticas HACCP</div>
+                <div class="stat-value-print" [class.danger]="r.calidad.alertasCriticas > 0">{{ r.calidad.alertasCriticas }}</div>
+              </div>
+            </div>
+            
+            <table class="report-table">
+              <thead>
+                <tr>
+                  <th>Control de Parámetro</th>
+                  <th>Aprobados (Aptos)</th>
+                  <th>Observados</th>
+                  <th>Rechazados</th>
+                  <th>Promedios Registrados</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Muestreo Físico-Químico</strong></td>
+                  <td>{{ r.calidad.aprobados }} lotes</td>
+                  <td>{{ r.calidad.observados }} lotes</td>
+                  <td [class.color-danger]="r.calidad.rechazados > 0"><strong>{{ r.calidad.rechazados }} lotes</strong></td>
+                  <td>
+                    Temp: {{ r.calidad.temperaturaPromedio | number:'1.1-2' }} °C | pH: {{ r.calidad.phPromedio | number:'1.1-2' }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            
+            <div class="quality-alert-box" *ngIf="r.calidad.alertasCriticas > 0">
+              <strong>⚠️ ALERTA DE SEGURIDAD ALIMENTARIA (HACCP):</strong> Se han detectado {{ r.calidad.alertasCriticas }} mediciones fuera del rango admisible (Temperatura > 4.5°C o pH fuera del rango 6.0 - 7.0). Revise los registros de los lotes observados de inmediato.
+            </div>
+          </div>
+
+          
+          <div class="report-section-print">
+            <h2>3. Resumen Financiero Operativo</h2>
+            
+            <div class="stat-grid-print">
+              <div class="stat-card-print">
+                <div class="stat-label-print">Costo Operacional Acumulado</div>
+                <div class="stat-value-print danger">S/ {{ r.costos.totalGeneral | number:'1.2-2' }}</div>
+              </div>
+              <div class="stat-card-print">
+                <div class="stat-label-print">Nómina Liquidaciones</div>
+                <div class="stat-value-print">S/ {{ r.liquidaciones.montoTotal | number:'1.2-2' }}</div>
+              </div>
+              <div class="stat-card-print">
+                <div class="stat-label-print">Desembolso Aprobado</div>
+                <div class="stat-value-print success">S/ {{ r.liquidaciones.montoAprobado | number:'1.2-2' }}</div>
+              </div>
+            </div>
+
+            <div class="report-two-columns">
+              <div class="report-column">
+                <h3 class="section-sub-title">Costos por Categoría</h3>
+                <table class="report-table">
+                  <thead>
+                    <tr>
+                      <th>Categoría de Costo</th>
+                      <th>Monto Total</th>
+                      <th>Porcentaje</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let cat of obtenerReporteCategoriasCosto()">
+                      <td>{{ cat }}</td>
+                      <td>S/ {{ obtenerReporteValorCategoriaCosto(cat) | number:'1.2-2' }}</td>
+                      <td>
+                        <div class="chart-bar-container">
+                          <div class="chart-bar-bg">
+                            <div class="chart-bar-fill fill-amber" [style.width.%]="obtenerReportePorcentajeCosto(cat)"></div>
+                          </div>
+                          <span class="chart-bar-value">{{ obtenerReportePorcentajeCosto(cat) | number:'1.0-0' }}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr *ngIf="obtenerReporteCategoriasCosto().length === 0">
+                      <td colspan="3" class="text-muted" style="text-align: center; padding: 1.5rem;">No se registran costos operativos en este periodo.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <div class="report-column">
+                <h3 class="section-sub-title">Nóminas de Personal</h3>
+                <table class="report-table">
+                  <thead>
+                    <tr>
+                      <th>Estado Planilla</th>
+                      <th>Monto Asignado</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Planillas Aprobadas</td>
+                      <td>S/ {{ r.liquidaciones.montoAprobado | number:'1.2-2' }}</td>
+                      <td><span class="badge badge-success">Pagado</span></td>
+                    </tr>
+                    <tr>
+                      <td>Planillas Pendientes</td>
+                      <td>S/ {{ r.liquidaciones.montoPendiente | number:'1.2-2' }}</td>
+                      <td><span class="badge badge-warning">{{ r.liquidaciones.cantidadPendientes }} pendientes</span></td>
+                    </tr>
+                    <tr class="table-total-row">
+                      <td><strong>Monto Consolidado</strong></td>
+                      <td><strong>S/ {{ r.liquidaciones.montoTotal | number:'1.2-2' }}</strong></td>
+                      <td>Total</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" *ngIf="!cargandoReporte()">
+        <button (click)="imprimirReporte()" class="btn-primary">Imprimir Reporte</button>
+        <button (click)="cerrarReporte()" class="btn-secundario">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+</div>

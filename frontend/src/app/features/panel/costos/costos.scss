@@ -1,28 +1,21 @@
 @use '../panel-shared' as *;
+@use '../../../../variables' as *;
 
-.tarjeta-oscura .tarjeta-valor {
-  color: #1e293b;
-}
+.card-mes .tarjeta-valor { color: $color-primary-dark; }
+.card-total .tarjeta-valor { color: $color-secondary; }
 
 .campo label .requerido {
-  color: #dc2626;
+  color: $color-error;
   margin-left: 2px;
-}
-
-.celda-descripcion {
-  max-width: 260px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: #6b7280; 
 }
 
 .badge-categoria {
   display: inline-block;
-  padding: .2rem .65rem;
+  padding: 0.25rem 0.65rem;
   border-radius: 20px;
-  font-size: .78rem;
-  font-weight: 600;
-  background: #e0e7ff;
-  color: #3730a3;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: rgba(97, 201, 168, 0.1);
+  color: $color-primary-dark;
+  border: 1px solid rgba(97, 201, 168, 0.15);
 }

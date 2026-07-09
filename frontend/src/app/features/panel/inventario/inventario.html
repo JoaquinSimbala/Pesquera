@@ -1,103 +1,122 @@
-<div class="container">
-  <h2 class="panel-title">Módulo 5: Inventario y Distribución</h2>
-
-  <div *ngIf="mensajeExito()" class="alert-success">
-    {{ mensajeExito() }}
+<div class="modulo fade-in">
+  <div class="modulo-header">
+    <h2>Inventario y Distribución</h2>
+    <p>Gestiona el ingreso de lotes al almacén y registra las salidas de distribución a destinos.</p>
   </div>
 
-  <div *ngIf="mensajeError()" class="alert-error">
-    {{ mensajeError() }}
-  </div>
-
-  <section class="panel-section">
-    <h3 class="section-title">1. Ingresar Lote de Planta a Almacén</h3>
-    <form [formGroup]="ingresoForm" (ngSubmit)="registrarIngresoLote()" class="grid">
-
-      <div class="form-group">
-        <label for="codigoLote">Código de Lote Nuevo:</label>
-        <input id="codigoLote" type="text" formControlName="codigoLote" placeholder="Ej: LOTE-13">
-      </div>
-
-      <div class="form-group">
-        <label for="kilosIniciales">Kilos Recibidos:</label>
-        <input id="kilosIniciales" type="number" formControlName="kilosIniciales" step="0.1" placeholder="Ej: 5000">
-      </div>
-
-      <div class="form-group" style="justify-content: flex-end;">
-        <button type="submit" class="btn-calc" [disabled]="ingresoForm.invalid">
-          Guardar Lote en Almacén
-        </button>
-      </div>
-    </form>
-  </section>
-
-  <section class="panel-section">
-    <h3 class="section-title">2. Registrar Salida / Distribución</h3>
-    <form [formGroup]="inventarioForm" (ngSubmit)="registrarDistribucion()" class="grid">
-
-      <div class="form-group">
-        <label for="loteReferencia">Lote de Producción (Stock):</label>
-        <select id="loteReferencia" formControlName="loteReferencia">
-          <option value="" disabled selected>Seleccione un Lote</option>
-          <option *ngFor="let lote of lotesDisponibles() | keyvalue" [value]="lote.key">
-            {{ lote.key }} (Disp: {{ lote.value }} kg)
-          </option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="kilosTotales">Kilos a Distribuir:</label>
-        <input id="kilosTotales" type="number" formControlName="kilosTotales" step="0.1">
-      </div>
-
-      <div class="form-group">
-        <label for="destino">Destino Final:</label>
-        <select id="destino" formControlName="destino">
-          <option value="" disabled selected>Seleccione un destino</option>
-          <option *ngFor="let dest of destinosDisponibles()" [value]="dest">{{ dest }}</option>
-        </select>
-      </div>
-
-      <button type="submit" class="btn-calc" [disabled]="inventarioForm.invalid">
-        Confirmar Distribución
-      </button>
-    </form>
-  </section>
-
-  <section class="panel-section dashboard-grid" *ngIf="metricas()">
-    <div class="metrics-card" *ngFor="let metrica of metricas() | keyvalue">
-      <h4>{{ metrica.key }}</h4>
-      <p class="metric-value">{{ metrica.value || 0 }} kg</p>
-      <span class="metric-label">Último mes</span>
+  
+  <div *ngIf="metricas()" class="tarjetas">
+    <div *ngFor="let metrica of metricas() | keyvalue" class="tarjeta">
+      <span class="tarjeta-valor">{{ metrica.value || 0 }} kg</span>
+      <span class="tarjeta-label">{{ metrica.key }}</span>
     </div>
-  </section>
+  </div>
 
-  <section class="panel-section">
-    <h3 class="section-title">Historial de Distribución</h3>
-    <div class="table-wrapper">
+  
+  <div class="formulario-card card">
+    <h3>Ingresar Lote de Planta a Almacén</h3>
+    <form [formGroup]="ingresoForm" (ngSubmit)="registrarIngresoLote()">
+      <div class="formulario-fila">
+        <div class="campo">
+          <label for="codigoLote">Código de Lote Nuevo</label>
+          <input id="codigoLote" type="text" formControlName="codigoLote" placeholder="Ej: LOTE-13" />
+        </div>
+        <div class="campo">
+          <label for="kilosIniciales">Kilos Recibidos</label>
+          <input id="kilosIniciales" type="number" formControlName="kilosIniciales" step="0.1" placeholder="Ej: 5000" />
+        </div>
+      </div>
+      <div class="formulario-botones">
+        <button type="submit" class="btn-primary" [disabled]="ingresoForm.invalid">Guardar Lote en Almacén</button>
+      </div>
+    </form>
+  </div>
+
+  
+  <div class="formulario-card card">
+    <h3>Registrar Salida / Distribución</h3>
+    <form [formGroup]="inventarioForm" (ngSubmit)="registrarDistribucion()">
+      <div class="formulario-fila">
+        <div class="campo">
+          <label for="loteReferencia">Lote de Producción (Stock)</label>
+          <app-custom-select
+            id="loteReferencia"
+            formControlName="loteReferencia"
+            [options]="lotesOptions()"
+            placeholder="Seleccione un Lote">
+          </app-custom-select>
+        </div>
+        <div class="campo">
+          <label for="kilosTotales">Kilos a Distribuir</label>
+          <input id="kilosTotales" type="number" formControlName="kilosTotales" step="0.1" placeholder="Ej: 1200" />
+        </div>
+        <div class="campo">
+          <label for="destino">Destino Final</label>
+          <app-custom-select
+            id="destino"
+            formControlName="destino"
+            [options]="destinosOptions()"
+            placeholder="Seleccione un destino">
+          </app-custom-select>
+        </div>
+      </div>
+      <div class="formulario-botones">
+        <button type="submit" class="btn-primary" [disabled]="inventarioForm.invalid">Confirmar Distribución</button>
+      </div>
+    </form>
+  </div>
+
+  
+  <div class="tabla-card card">
+    <h3>Historial de Distribución</h3>
+    <div class="tabla-contenedor">
       <table>
         <thead>
-        <tr>
-          <th>ID</th>
-          <th>Fecha</th>
-          <th>Lote Referencia</th>
-          <th>Destino</th>
-          <th>Kilos Totales</th>
-        </tr>
+          <tr>
+            <th>#</th>
+            <th>Fecha</th>
+            <th>Lote Referencia</th>
+            <th>Destino</th>
+            <th class="text-right">Kilos Totales</th>
+          </tr>
         </thead>
         <tbody>
-        <tr *ngFor="let item of historial()">
-          <td>#{{ item.id }}</td>
-          <td>{{ item.fechaRegistro }}</td>
-          <th>{{ item.loteReferencia }}</th>
-          <td>{{ item.destino }}</td>
-          <td><strong>{{ item.kilosTotales }} kg</strong></td>
-        </tr>
-        <tr *ngIf="historial().length === 0">
-          <td colspan="5">No hay registros de inventario disponibles.</td>
-        </tr>
+          <tr *ngFor="let item of historial(); let i = index">
+            <td>{{ i + 1 }}</td>
+            <td style="font-size: 0.85rem; white-space: nowrap;">{{ item.fechaRegistro }}</td>
+            <td class="font-semibold">{{ item.loteReferencia }}</td>
+            <td>
+              <span class="destino-tag">{{ item.destino }}</span>
+            </td>
+            <td class="text-right font-bold price-col">{{ item.kilosTotales }} kg</td>
+          </tr>
+          <tr *ngIf="historial().length === 0">
+            <td colspan="5" class="text-center" style="padding: 3rem; color: #5c6f72;">No hay registros de distribución disponibles.</td>
+          </tr>
         </tbody>
       </table>
     </div>
-  </section>
+
+    
+    <div class="tabla-paginador" *ngIf="totalElementos() > 0">
+      <div class="paginador-info">
+        Mostrando página <strong>{{ paginaActual() + 1 }}</strong> de <strong>{{ totalPaginas() }}</strong> (<strong>{{ totalElementos() }}</strong> registros en total)
+      </div>
+      <div class="paginador-controles">
+        <button 
+          class="btn-paginado" 
+          [disabled]="paginaActual() === 0" 
+          (click)="anteriorPagina()">
+          Anterior
+        </button>
+        <button 
+          class="btn-paginado" 
+          [disabled]="paginaActual() >= totalPaginas() - 1" 
+          (click)="siguientePagina()">
+          Siguiente
+        </button>
+      </div>
+    </div>
+
+  </div>
 </div>

@@ -3,6 +3,8 @@ package com.empresa.pesquera.application.service;
 import com.empresa.pesquera.application.dto.form.RegistroCalidadForm;
 import com.empresa.pesquera.domain.entity.ControlCalidad;
 import com.empresa.pesquera.infra.persistence.ControlCalidadRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,8 +36,8 @@ public class CalidadService {
         repository.save(cc);
     }
 
-    public List<ControlCalidad> listarHistorial() {
-        return repository.findTop50ByOrderByFechaRegistroDesc();
+    public Page<ControlCalidad> listarHistorial(Pageable pageable) {
+        return repository.findAllByOrderByFechaRegistroDesc(pageable);
     }
 
     public Map<String, Object> obtenerResumenMetricas() {

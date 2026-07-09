@@ -2,17 +2,15 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  CostosService,
-  Costo,
-  ResumenCostos,
-  DatosCostos,
-  NuevoCosto,
+  CostosService, Costo, ResumenCostos, DatosCostos, NuevoCosto,
 } from '../../../core/services/costos';
+import { DialogoService } from '../../../core/services/dialogo';
+import { CustomSelect, SelectOption } from '../../../core/components/custom-select/custom-select';
 
 @Component({
   selector: 'app-costos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CustomSelect],
   templateUrl: './costos.html',
   styleUrl: './costos.scss',
 })
@@ -22,19 +20,27 @@ export class Costos implements OnInit {
   resumen: ResumenCostos | null = null;
   categorias: string[] = [];
 
+  get categoriasOptions(): SelectOption[] {
+    return this.categorias.map(cat => ({ value: cat, label: cat }));
+  }
+
   mostrarFormulario = false;
   formCategoria = '';
   formConcepto = '';
   formMonto: number | null = null;
   formFecha = '';
   formDescripcion = '';
-
   cargando = false;
-  mensaje = '';
-  tipoMensaje: 'exito' | 'error' | '' = '';
+
+  
+  paginaActual = 0;
+  elementosPorPagina = 10;
+  totalElementos = 0;
+  totalPaginas = 0;
 
   constructor(
     private costosService: CostosService,
+    private dialogoService: DialogoService,
     private cdr: ChangeDetectorRef
   ) {
     const hoy = new Date();
@@ -50,33 +56,31 @@ export class Costos implements OnInit {
 
   cargarDatos(): void {
     this.cargando = true;
-    this.costosService.obtenerDatos().subscribe({
+    this.costosService.obtenerDatos(this.paginaActual, this.elementosPorPagina).subscribe({
       next: (datos: DatosCostos) => {
         this.costos = datos.costos;
         this.resumen = datos.resumen;
         this.categorias = datos.categorias;
+        this.totalPaginas = datos.totalPages || 0;
+        this.totalElementos = datos.totalElements || 0;
         this.cargando = false;
         this.cdr.detectChanges();
       },
-      error: (err) => {
-        console.error('Error cargando costos:', err);
+      error: () => {
         this.cargando = false;
-        this.mostrarMensaje('Error al cargar los datos. Verifica la conexión.', 'error');
+        this.dialogoService.error('Error de Carga', 'Error al cargar los datos. Verifica la conexión.');
       },
     });
   }
 
   get categoriasResumen(): { nombre: string; monto: number }[] {
     if (!this.resumen) return [];
-    return Object.entries(this.resumen.porCategoria).map(([nombre, monto]) => ({
-      nombre,
-      monto,
-    }));
+    return Object.entries(this.resumen.porCategoria).map(([nombre, monto]) => ({ nombre, monto }));
   }
 
   registrar(): void {
     if (!this.formCategoria || !this.formConcepto || !this.formMonto || this.formMonto <= 0) {
-      this.mostrarMensaje('Completa los campos obligatorios: categoría, concepto y monto.', 'error');
+      this.dialogoService.advertencia('Campos Incompletos', 'Completa los campos obligatorios: categoría, concepto y monto.');
       return;
     }
 
@@ -91,12 +95,12 @@ export class Costos implements OnInit {
     this.costosService.registrar(nuevoCosto).subscribe({
       next: () => {
         this.resetFormulario();
-        this.mostrarMensaje('Costo registrado correctamente.', 'exito');
+        this.dialogoService.exito('Costo Registrado', 'El costo operacional fue registrado correctamente.');
+        this.paginaActual = 0;
         this.cargarDatos();
       },
-      error: (err) => {
-        console.error('Error registrando costo:', err);
-        this.mostrarMensaje('Error al registrar el costo.', 'error');
+      error: () => {
+        this.dialogoService.error('Error de Registro', 'Error al registrar el costo.');
       },
     });
   }
@@ -109,14 +113,17 @@ export class Costos implements OnInit {
     this.mostrarFormulario = false;
   }
 
-  mostrarMensaje(texto: string, tipo: 'exito' | 'error'): void {
-    this.mensaje = texto;
-    this.tipoMensaje = tipo;
-    this.cdr.detectChanges();
-    setTimeout(() => {
-      this.mensaje = '';
-      this.tipoMensaje = '';
-      this.cdr.detectChanges();
-    }, 4000);
+  siguientePagina(): void {
+    if (this.paginaActual < this.totalPaginas - 1) {
+      this.paginaActual++;
+      this.cargarDatos();
+    }
+  }
+
+  anteriorPagina(): void {
+    if (this.paginaActual > 0) {
+      this.paginaActual--;
+      this.cargarDatos();
+    }
   }
 }

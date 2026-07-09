@@ -1,0 +1,183 @@
+@use '../../../../variables' as *;
+
+
+:host {
+  display: block;
+  position: relative;
+  width: 100%;
+  z-index: 10;
+  transition: z-index $transition-fast;
+}
+
+:host:has(.cs-open),
+:host:focus-within {
+  z-index: 500;
+}
+
+
+.cs-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.7rem 1rem;
+  background: rgba(255, 255, 255, 0.83);
+  border: 1px solid rgba(97, 201, 168, 0.22);
+  border-radius: $border-radius-md;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.7);
+  font-family: $font-family-base;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: $color-secondary;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color $transition-fast, box-shadow $transition-fast, background $transition-fast;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+    box-shadow: 0 0 0 3px rgba(97, 201, 168, 0.12), inset 0 1px 2px rgba(255, 255, 255, 0.7);
+  }
+}
+
+.cs-wrapper:hover .cs-trigger,
+.cs-open .cs-trigger {
+  border-color: $color-primary;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.cs-disabled .cs-trigger {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: rgba(241, 245, 249, 0.793);
+}
+
+
+.cs-value {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cs-placeholder {
+  color: #9db0b2;
+  font-weight: 400;
+}
+
+
+.cs-chevron {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+  color: $color-primary-dark;
+  transition: transform $transition-fast;
+}
+
+.cs-open .cs-chevron {
+  transform: rotate(180deg);
+}
+
+
+.cs-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 9000;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgba(97, 201, 168, 0.2);
+  border-radius: $border-radius-md;
+  box-shadow:
+    0 20px 40px -8px rgba(47, 62, 70, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  overflow: hidden;
+  animation: dropIn 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: top center;
+}
+
+@keyframes dropIn {
+  from {
+    opacity: 0;
+    transform: scaleY(0.88) translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scaleY(1) translateY(0);
+  }
+}
+
+.cs-options-scroll {
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 0.35rem;
+  background: rgba(255, 255, 255, 0.799);
+
+  
+  scrollbar-width: thin;
+  scrollbar-color: rgba(97, 201, 168, 0.3) transparent;
+
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(97, 201, 168, 0.3);
+    border-radius: 10px;
+  }
+}
+
+
+.cs-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.6rem 0.9rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font-family: $font-family-base;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: $color-secondary;
+  cursor: pointer;
+  text-align: left;
+  transition: background $transition-fast, color $transition-fast;
+
+  &:hover {
+    background: rgba(97, 201, 168, 0.1);
+    color: $color-primary-dark;
+  }
+
+  &.cs-option-selected {
+    background: rgba(97, 201, 168, 0.12);
+    color: $color-primary-dark;
+    font-weight: 700;
+  }
+}
+
+.cs-option-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cs-check {
+  width: 15px;
+  height: 15px;
+  color: $color-primary-dark;
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+}

@@ -37,9 +37,9 @@ export class LoginComponent {
         if (response.rol === 'GERENTE') {
           this.router.navigate(['/panel/carga']);
         } else if (response.rol === 'SUPERVISOR') {
-          this.router.navigate(['/panel/inventario']);
+          this.router.navigate(['/panel/gestion']);
         } else {
-          this.router.navigate(['/panel/dashboard']);
+          this.router.navigate(['/login']);
         }
         this.isLoading = false;
       },

@@ -1,21 +1,17 @@
-<div class="modulo">
+<div class="modulo fade-in">
 
   <div class="modulo-header">
-    <h2>Módulo 4 — Costos Operacionales</h2>
+    <h2>Costos Operacionales</h2>
     <p>Registra y controla los gastos de la planta: insumos, servicios, mantenimiento y más.</p>
   </div>
 
-  <div *ngIf="mensaje" class="alerta" [class.alerta-exito]="tipoMensaje === 'exito'" [class.alerta-error]="tipoMensaje === 'error'">
-    {{ mensaje }}
-  </div>
-
-  <!-- Tarjetas de resumen -->
+  
   <div *ngIf="resumen" class="tarjetas">
-    <div class="tarjeta tarjeta-azul">
+    <div class="tarjeta card-mes">
       <span class="tarjeta-valor">S/ {{ resumen.totalMes | number:'1.2-2' }}</span>
       <span class="tarjeta-label">Total del Mes</span>
     </div>
-    <div class="tarjeta tarjeta-oscura">
+    <div class="tarjeta card-total">
       <span class="tarjeta-valor">S/ {{ resumen.totalGeneral | number:'1.2-2' }}</span>
       <span class="tarjeta-label">Total Acumulado</span>
     </div>
@@ -25,62 +21,53 @@
     </div>
   </div>
 
+  
   <div class="acciones">
-    <button class="btn-primario" (click)="mostrarFormulario = !mostrarFormulario">
-      {{ mostrarFormulario ? 'Cancelar' : '+ Registrar Costo' }}
+    <button class="btn-primary" (click)="mostrarFormulario = !mostrarFormulario">
+      {{ mostrarFormulario ? 'Cancelar' : 'Registrar Costo' }}
     </button>
   </div>
 
-  <!-- Formulario -->
-  <div *ngIf="mostrarFormulario" class="formulario-card">
+  
+  <div *ngIf="mostrarFormulario" class="formulario-card card fade-in">
     <h3>Nuevo Costo Operacional</h3>
-
     <div class="formulario-fila">
       <div class="campo">
         <label>Categoría <span class="requerido">*</span></label>
-        <select [(ngModel)]="formCategoria">
-          <option value="">-- Selecciona una categoría --</option>
-          <option *ngFor="let cat of categorias" [value]="cat">{{ cat }}</option>
-        </select>
+        <app-custom-select
+          [(ngModel)]="formCategoria"
+          [options]="categoriasOptions"
+          placeholder="-- Selecciona una categoría --">
+        </app-custom-select>
       </div>
-
       <div class="campo">
         <label>Concepto <span class="requerido">*</span></label>
         <input type="text" [(ngModel)]="formConcepto" placeholder="Ej: Compra de hielo" maxlength="200" />
       </div>
-
       <div class="campo">
         <label>Monto (S/) <span class="requerido">*</span></label>
         <input type="number" [(ngModel)]="formMonto" min="0.01" step="0.01" placeholder="Ej: 1500.00" />
       </div>
-
       <div class="campo">
         <label>Fecha del gasto</label>
         <input type="date" [(ngModel)]="formFecha" />
       </div>
     </div>
-
-    <div class="campo campo-ancho">
+    <div class="campo campo-ancho" style="margin-bottom: 1.5rem;">
       <label>Descripción (opcional)</label>
       <textarea [(ngModel)]="formDescripcion" rows="3" placeholder="Detalles adicionales..." maxlength="500"></textarea>
     </div>
-
     <div class="formulario-botones">
-      <button class="btn-primario" (click)="registrar()">Registrar</button>
+      <button class="btn-primary" (click)="registrar()">Registrar</button>
       <button class="btn-secundario" (click)="resetFormulario()">Cancelar</button>
     </div>
   </div>
 
-  <!-- Tabla -->
-  <div class="tabla-card">
+  
+  <div class="tabla-card card">
     <h3>Historial de Costos</h3>
-
     <div *ngIf="cargando" class="estado-pantalla">Cargando datos...</div>
-
-    <div *ngIf="!cargando && costos.length === 0" class="estado-pantalla">
-      No hay costos registrados aún.
-    </div>
-
+    <div *ngIf="!cargando && costos.length === 0" class="estado-pantalla">No hay costos registrados aún.</div>
     <div *ngIf="!cargando && costos.length > 0" class="tabla-contenedor">
       <table>
         <thead>
@@ -88,7 +75,7 @@
             <th>#</th>
             <th>Categoría</th>
             <th>Concepto</th>
-            <th>Monto</th>
+            <th class="text-right">Monto</th>
             <th>Fecha</th>
             <th>Descripción</th>
           </tr>
@@ -97,13 +84,34 @@
           <tr *ngFor="let costo of costos; let i = index">
             <td>{{ i + 1 }}</td>
             <td><span class="badge-categoria">{{ costo.categoria }}</span></td>
-            <td>{{ costo.concepto }}</td>
-            <td><strong>S/ {{ costo.monto | number:'1.2-2' }}</strong></td>
-            <td>{{ costo.fechaCosto }}</td>
-            <td class="celda-descripcion">{{ costo.descripcion || '—' }}</td>
+            <td class="font-semibold">{{ costo.concepto }}</td>
+            <td class="text-right font-bold price-col">S/ {{ costo.monto | number:'1.2-2' }}</td>
+            <td style="font-size: 0.85rem; white-space: nowrap;">{{ costo.fechaCosto }}</td>
+            <td style="font-size: 0.85rem; color: #5c6f72;">{{ costo.descripcion || '—' }}</td>
           </tr>
         </tbody>
       </table>
+    </div>
+
+    
+    <div class="tabla-paginador" *ngIf="!cargando && totalElementos > 0">
+      <div class="paginador-info">
+        Mostrando página <strong>{{ paginaActual + 1 }}</strong> de <strong>{{ totalPaginas }}</strong> (<strong>{{ totalElementos }}</strong> registros en total)
+      </div>
+      <div class="paginador-controles">
+        <button 
+          class="btn-paginado" 
+          [disabled]="paginaActual === 0" 
+          (click)="anteriorPagina()">
+          Anterior
+        </button>
+        <button 
+          class="btn-paginado" 
+          [disabled]="paginaActual >= totalPaginas - 1" 
+          (click)="siguientePagina()">
+          Siguiente
+        </button>
+      </div>
     </div>
 
   </div>

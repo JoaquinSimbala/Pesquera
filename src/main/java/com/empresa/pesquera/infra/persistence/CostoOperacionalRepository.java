@@ -8,9 +8,12 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 public interface CostoOperacionalRepository extends JpaRepository<CostoOperacional, Long> {
 
-    List<CostoOperacional> findAllByOrderByFechaCostoDescFechaRegistroDesc();
+    Page<CostoOperacional> findAllByOrderByFechaCostoDescFechaRegistroDesc(Pageable pageable);
 
     @Query("SELECT COALESCE(SUM(c.monto), 0) FROM CostoOperacional c")
     Double sumarTotalGeneral();
