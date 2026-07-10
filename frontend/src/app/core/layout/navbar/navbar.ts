@@ -15,10 +15,21 @@ export class NavbarComponent {
   private router = inject(Router);
 
   user = this.authService.currentUser;
+  isMenuOpen = false;
+
+  toggleMenu() {
+    this.isMenuOpen = !this.isMenuOpen;
+  }
+
+  closeMenu() {
+    this.isMenuOpen = false;
+  }
 
   logout() {
     this.authService.logout().subscribe(() => {
+      this.closeMenu();
       this.router.navigate(['/login']);
     });
   }
 }
+

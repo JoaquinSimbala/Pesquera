@@ -4,26 +4,40 @@
     <h1>TRAZAMAR</h1>
   </div>
 
-  <ul class="nav-links" *ngIf="user().isAuthenticated">
+  <button 
+    class="navbar-burger" 
+    [class.is-active]="isMenuOpen" 
+    (click)="toggleMenu()" 
+    *ngIf="user().isAuthenticated"
+    aria-label="Toggle navigation"
+    [attr.aria-expanded]="isMenuOpen"
+  >
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
 
-    <ng-container *ngIf="user().role === 'GERENTE'">
-      <li><a routerLink="/panel/carga" routerLinkActive="active">Analisis de Carga</a></li>
-      <li><a routerLink="/panel/asignacion" routerLinkActive="active">Asignacion de Personal</a></li>
-      <li><a routerLink="/panel/liquidaciones" routerLinkActive="active">Liquidacion y Pagos</a></li>
-      <li><a routerLink="/panel/costos" routerLinkActive="active">Costos Operacionales</a></li>
-      <li><a routerLink="/panel/inventario" routerLinkActive="active">Inventario</a></li>
-    </ng-container>
+  <div class="navbar-content" [class.is-active]="isMenuOpen" *ngIf="user().isAuthenticated">
+    <ul class="nav-links">
+      <ng-container *ngIf="user().role === 'GERENTE'">
+        <li><a routerLink="/panel/carga" routerLinkActive="active" (click)="closeMenu()">Analisis de Carga</a></li>
+        <li><a routerLink="/panel/asignacion" routerLinkActive="active" (click)="closeMenu()">Asignacion de Personal</a></li>
+        <li><a routerLink="/panel/liquidaciones" routerLinkActive="active" (click)="closeMenu()">Liquidacion y Pagos</a></li>
+        <li><a routerLink="/panel/costos" routerLinkActive="active" (click)="closeMenu()">Costos Operacionales</a></li>
+        <li><a routerLink="/panel/inventario" routerLinkActive="active" (click)="closeMenu()">Inventario</a></li>
+      </ng-container>
 
-    <ng-container *ngIf="user().role === 'SUPERVISOR'">
-      <li><a routerLink="/panel/gestion" routerLinkActive="active">Gestión de Negocio</a></li>
-      <li><a routerLink="/panel/inventario" routerLinkActive="active">Inventario y Distribución</a></li>
-      <li><a routerLink="/panel/calidad" routerLinkActive="active">Control de Calidad</a></li>
-      <li><a routerLink="/panel/auditorias" routerLinkActive="active">Auditoría de Actividades</a></li>
-    </ng-container>
-  </ul>
+      <ng-container *ngIf="user().role === 'SUPERVISOR'">
+        <li><a routerLink="/panel/gestion" routerLinkActive="active" (click)="closeMenu()">Gestión de Negocio</a></li>
+        <li><a routerLink="/panel/inventario" routerLinkActive="active" (click)="closeMenu()">Inventario y Distribución</a></li>
+        <li><a routerLink="/panel/calidad" routerLinkActive="active" (click)="closeMenu()">Control de Calidad</a></li>
+        <li><a routerLink="/panel/auditorias" routerLinkActive="active" (click)="closeMenu()">Auditoría de Actividades</a></li>
+      </ng-container>
+    </ul>
 
-  <div class="navbar-user" *ngIf="user().isAuthenticated">
-    <span class="username">{{ user().username }} ({{ user().role }})</span>
-    <button (click)="logout()" class="btn-logout">Salir</button>
+    <div class="navbar-user">
+      <span class="username">{{ user().username }} ({{ user().role }})</span>
+      <button (click)="logout()" class="btn-logout">Salir</button>
+    </div>
   </div>
 </nav>
